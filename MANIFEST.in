@@ -1,0 +1,3 @@
+recursive-include msnoise_tomo/DATAFILES *.*
+recursive-include msnoise_tomo/lib *
+recursive-include src *

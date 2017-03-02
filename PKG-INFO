@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: msnoise_tomo
+Version: 0.1a0
+Summary: A Python Package for Monitoring Seismic Velocity Changes using Ambient Seismic Noise
+Home-page: http://www.msnoise.org
+Author: Thomas Lecocq & MSNoise dev team
+Author-email: Thomas.Lecocq@seismology.be
+License: SISPROBE LICENCE
+Description: UNKNOWN
+Keywords: noise monitoring seismic velocity change dvv dtt doublet stretching cross-correlation acoustics seismology
+Platform: UNKNOWN
