@@ -23,7 +23,7 @@ def main():
     all.to_csv("all.csv")
     Xmean = all.copy().apply(func=np.nanmean, axis=1)
     Xstd = all.copy().apply(func=np.nanstd, axis=1)
-    print Xstd.head()
+    print(Xstd.head())
     count = all.copy().count(axis=1)
     all.plot()
     plt.show()
@@ -31,7 +31,7 @@ def main():
     tmp.index = Periods
     tmp["std"] = Xstd
     #tmp["count"] = count
-    print tmp.head()
+    print(tmp.head())
     tmp.to_csv("mean.csv")
 
 

@@ -6,14 +6,14 @@ import numpy as np
 from matplotlib.cm import hot_r as viridis
 from obspy.core import read
 
-from ftan_call import pickgroupdispcurv
+from .ftan_call import pickgroupdispcurv
 
 
 def main():
 
     #SACfilelist = glob.glob(os.path.join(os.path.split(os.path.realpath(__file__))[0], r'*_Sym.SAC'))
     SACfilelist = glob.glob(r'TOMO_SAC/*.SAC')
-    print SACfilelist
+    print(SACfilelist)
     PER=np.array([3.5, 5, 10, 20, 30, 50, 60]) # Interpolation periods
     PLOTDIAGR=1
     PLOTRAWDISP=1
@@ -128,7 +128,7 @@ def main():
 
     if PLOTDISPALL:
         norm=np.sqrt(np.sum(np.isfinite(Disp),axis=1)) / np.max(np.sqrt(np.sum(np.isfinite(Disp),axis=1)))
-        print norm
+        print(norm)
         plt.figure()
         plt.subplot(211)
         plt.plot(PER, Disp, lw=0.5)

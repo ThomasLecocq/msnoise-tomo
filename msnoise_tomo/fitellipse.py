@@ -149,7 +149,7 @@ def fitellipse( x, opt = 'nonlinear', **kwargs ):
         
         ## Return linear estimate if GN doesn't converge
         if not fConverged:
-            print 'fitellipse:FailureToConverge', 'Gauss-Newton did not converge, returning linear estimate'
+            print('fitellipse:FailureToConverge', 'Gauss-Newton did not converge, returning linear estimate')
             z = z0
             a = a0
             b = b0
@@ -273,7 +273,7 @@ def fitnonlinear(x, z0, a0, b0, alpha0, **params):
         ##TODO: This can be fixed by switching to a Levenberg-Marquardt
         ##solver
         if abs(a - b) / (a + b) < circTol:
-            print 'fitellipse:CircleFound', 'Ellipse is near-circular - nonlinear fit may not succeed'
+            print('fitellipse:CircleFound', 'Ellipse is near-circular - nonlinear fit may not succeed')
         
         ## Convenience trig variables
         c = cos(phi)

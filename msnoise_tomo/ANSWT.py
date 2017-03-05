@@ -13,7 +13,7 @@ from msnoise.api import connect, get_config
 from scipy import ndimage
 from skimage import measure
 
-from fitellipse import fitellipse
+from .fitellipse import fitellipse
 
 kml = """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,12 +35,12 @@ kml = """\
 """
 
 def loadH(G,lmd):
-    print "lambda", lmd
+    print("lambda", lmd)
 
     H=np.exp(-lmd*np.sum(np.abs(np.sign(G.toarray().T)),axis=1))
-    print H.shape
+    print(H.shape)
     H = np.diag(H)
-    print H.shape
+    print(H.shape)
     return H
 
 def loadG(nX, nY, file, gridfile,ANSWT_toolbox_path):
@@ -90,7 +90,7 @@ def initModel(gridfile):
 
 def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     path_tb=os.path.join(os.path.split(os.path.realpath(__file__))[0],'lib')
-    print path_tb
+    print(path_tb)
     X,Y,nX,nY,bin = initModel(gridfile)
     pasgrille = np.mean(bin)
 
@@ -136,7 +136,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     # Selection des tps d'arrivee compris entre +n et -n variance
     v_max=MoyV_meas+3*VarV_meas
     v_min=MoyV_meas-3*VarV_meas
-    print v_max, v_min
+    print(v_max, v_min)
     sv=np.where((Vg<=v_max) & (Vg>=v_min))[0]
     print('There are %i data in total.' % len(Vg))
 
@@ -188,16 +188,16 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     print('Q computed')
 
     #G1=G.T*G # possible to add data covariance matrix Cd (eq. 18 of Mordret et al. ,2013a)
-    print type(G), type(invCd), type(G)
+    print(type(G), type(invCd), type(G))
     G1 = np.multiply(G.T, invCd) * G
     # plt.imshow(G1.toarray())
     # plt.colorbar()
     # plt.show()
-    print G1.shape
+    print(G1.shape)
     G1 = scipy.sparse.csc_matrix(G1)
-    print Q.shape, G1.shape, G.shape, Dt.shape, invCd.shape
-    print "*-"*50
-    print type(G1+Q), (G1+Q).shape, G.T.shape
+    print(Q.shape, G1.shape, G.shape, Dt.shape, invCd.shape)
+    print("*-"*50)
+    print(type(G1+Q), (G1+Q).shape, G.T.shape)
 
     invG = scipy.sparse.linalg.spsolve((G1+Q), G.T)
     # plt.imshow(invG.toarray())
@@ -208,13 +208,13 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     m_vel1 = m0.flatten()/(m_inv+1) # we defined m=(u0-u)/u = u0/u - 1 so u=u0/(m+1) (eq. 5)
     t_calc1=GG*(1./m_vel1)
     RMS_l1 = np.std(t_calc1-t_obs)
-    print RMS_l1
+    print(RMS_l1)
 
     # 2eme iteration avec model lisse precedent
     # m02 = model initial No 2
 
     m02=m_vel1
-    print m02.shape
+    print(m02.shape)
 
     Dt3=t_obs-t_calc1
 
@@ -268,14 +268,14 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     t_calc2=GG*(1./m_vel2)
     M_vel= m_vel2.reshape(nY, nX) #  final model
     densitypath = np.sum(np.abs(np.sign(G.toarray())), axis=0).T.reshape(nY, nX) # number of ray per cell
-    print densitypath.shape
+    print(densitypath.shape)
     RMS_l2 = np.var((t_calc2-t_obs[s]))
     RMS0_l = np.var(Dt)
     print("Mvel computed")
-    print RMS0_l
+    print(RMS0_l)
     # diminution de variance
     vared2 =100.*(1-RMS_l2/RMS0_l)
-    print vared2
+    print(vared2)
 
     doplot = 1
     if doplot:
@@ -288,7 +288,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         # densitypath(Dsity==0)=NaN;
         seuil = 0
         id = np.where(Dsity <= seuil)
-        print id
+        print(id)
         M_vel[id] *= np.nan
 
         M = M_vel
@@ -415,7 +415,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
                 ac += area
             Areares[ir] = ac
             if len(contours[ilargest][:,0]) < 6:
-                print "not enough point to fit an ellipse"
+                print("not enough point to fit an ellipse")
                 Resmin[ir]=111.11*0.02
                 Resmax[ir]=111.11*0.02
                 Y0res[ir]=Yp[0][ir]
@@ -482,9 +482,9 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, show):
             ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show)
         except:
             traceback.print_exc()
-            print "!"*80
-            print "Can't compute tomo for period=", per
-            print "!"*80
+            print("!"*80)
+            print("Can't compute tomo for period=", per)
+            print("!"*80)
 
 if __name__ == "__main__":
     main()

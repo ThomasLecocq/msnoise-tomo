@@ -11,14 +11,14 @@ def main():
     try:
         TomoConfig.__table__.create(bind=engine, checkfirst=True)
     except:
-        print "Table seems to already exist"
+        print("Table seems to already exist")
 
     for name in default.keys():
         try:
             session.add(TomoConfig(name=name, value=default[name][-1]))
             session.commit()
-            print "Added %s" % name
+            print("Added %s" % name)
         except:
-            print "parameter %s already in database" % name
+            print("parameter %s already in database" % name)
             session.rollback()
 

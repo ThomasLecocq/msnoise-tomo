@@ -143,7 +143,7 @@ def ellfit(X,Y,rs=50,showFig=True):
     ecc=sqrt(a**2-b**2)
     theta=ang
     ellArea=pi*a*b
-    print "Ploygon_area - ellispe_area = ",round(ellArea-t.sum(),3)
+    print("Ploygon_area - ellispe_area = ",round(ellArea-t.sum(),3))
     
     #print time.time()-t1
     if showFig:

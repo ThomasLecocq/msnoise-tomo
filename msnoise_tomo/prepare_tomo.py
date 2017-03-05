@@ -37,9 +37,9 @@ def main():
             d = get_interstation_distance(s1, s2)*1000
             dists.append(d)
         tmp["dist"] = dists
-        print tmp.head()
+        print(tmp.head())
         tmp = tmp[["sta1","sta2","per",per,"error","dist"]]
-        print tmp.head()
+        print(tmp.head())
         tmp = tmp.dropna()
         of = os.path.join("TOMO_FILES", "TestGroupVel_%.1fsGLISN.dat"%per)
         tmp.to_csv(of, index=False, header=False, sep=" ")
@@ -50,7 +50,7 @@ def main():
     of = os.path.join("TOMO_FILES", "GLISN_STACoord.dat")
     df.to_csv(of, index=False, header=False, sep=" ")
 
-    of  = os.path.join("TOMO_FILES", "GLISNGrid.dat")
+    of = os.path.join("TOMO_FILES", "GLISNGrid.dat")
     f = open(of,'w')
     xstep = float(get_config(db, "xstep", plugin="Tomo"))
     ystep = float(get_config(db, "ystep", plugin="Tomo"))

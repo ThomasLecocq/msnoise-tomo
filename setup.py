@@ -1,11 +1,10 @@
-import os
-import sys
 
+import sys
+import os
 from setuptools import setup, find_packages
 
-
 def pre_install_build():
-    print "ok, trying to build all that C/C++ codes"
+    print("ok, trying to build all that C/C++ codes")
     for module in ["configparser.cpp",
                    "fft_NR.cpp",
                    "fta_param.cpp",
@@ -48,7 +47,7 @@ setup(
     author = "Thomas Lecocq & MSNoise dev team",
     author_email = "Thomas.Lecocq@seismology.be",
     description = "A Python Package for Monitoring Seismic Velocity Changes using Ambient Seismic Noise",
-    license = "EUPL 1.1",
+    license = "SISPROBE LICENCE",
     url = "http://www.msnoise.org",
     keywords="noise monitoring seismic velocity change dvv dtt doublet stretching cross-correlation acoustics seismology"
 )

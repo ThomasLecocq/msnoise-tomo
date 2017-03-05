@@ -1,9 +1,8 @@
 #from obspy.imaging.cm import viridis
 import matplotlib.pyplot as plt
+from .ftan_call import pickgroupdispcurv
 from matplotlib.cm import hot_r as viridis
 from msnoise.api import *
-
-from ftan_call import pickgroupdispcurv
 
 
 def main(pair, bmin, bmax, show):
@@ -38,7 +37,7 @@ def main(pair, bmin, bmax, show):
 
             for job in jobs:
                 netsta1, netsta2 = job.pair.split(':')
-                print netsta1, netsta2
+                print(netsta1, netsta2)
                 # fn = os.path.join("TOMO_SAC", "%s_%s_REAL.SAC"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
                 # SACfilelist.append(fn)
                 # fn = os.path.join("TOMO_SAC", "%s_%s_REAL.SAC"%(netsta2.replace('.','_'), netsta1.replace('.','_')))
@@ -55,7 +54,7 @@ def main(pair, bmin, bmax, show):
                 fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.SAC"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
                 SACfilelist.append(fn)
             pair = None
-        print SACfilelist
+        print(SACfilelist)
         GVdisp = [{},]*len(SACfilelist)
         maxp = np.empty(len(SACfilelist))
         for i, filename in enumerate(SACfilelist):
@@ -136,8 +135,8 @@ def main(pair, bmin, bmax, show):
             Periods = np.arange(0, np.ceil(np.max(GVdisp[i]["PERIOD"]))+1.1, 0.1)
             dci=np.interp(Periods, GVdisp[i]["PERIOD"], GVdisp[i]["GroupVel"], left=np.nan, right=np.nan)
             dcii = np.interp(PER, Periods, dci, left=np.nan, right=np.nan)
-            print PER
-            print dcii
+            print(PER)
+            print(dcii)
             df = pd.Series(dcii, index=PER, name="disp")
             df.plot()
             fn = os.path.join("TOMO_DISP", basename+".csv")
@@ -174,7 +173,7 @@ def main(pair, bmin, bmax, show):
 
         if PLOTDISPALL:
             norm=np.sqrt(np.sum(np.isfinite(Disp),axis=1)) / np.max(np.sqrt(np.sum(np.isfinite(Disp),axis=1)))
-            print norm
+            print(norm)
             plt.figure()
             plt.subplot(211)
             plt.plot(PER, Disp, lw=0.5)

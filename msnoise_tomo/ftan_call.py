@@ -16,7 +16,7 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
         ' disp=none out=mat diag=', diagramtype, ' nfreq=', nfreq, ' ampMin=', ampmin]
 
     com = "".join([str(a) for a in command])
-    print com
+    print(com)
     os.system(com)
 
     V = np.loadtxt('write_TV.txt')
@@ -57,7 +57,7 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
                ' ampMin=', ampmin]
 
     com = "".join([str(a) for a in command])
-    print com
+    print(com)
     os.system(com)
 
     D = np.loadtxt('write_disp.txt')
