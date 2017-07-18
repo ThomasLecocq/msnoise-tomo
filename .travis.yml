@@ -58,16 +58,10 @@ before_install:
   - conda install --yes -q numpy scipy matplotlib statsmodels pandas sqlalchemy
   - conda install --yes -q sphinx jinja2 flask pymysql click
   - conda install --yes -q lxml pyqt
-#  - conda install --yes -q bokeh
   - conda install --yes -q -c conda-forge obspy
-  - pip install flask-admin
+  - conda install --yes -q -c conda-forge flask-admin markdown codecov
   - pip install multiprocessing_logging
-  - pip install markdown
   - pip install http://msnoise.org/master.zip
-
-  # Collecting scikits.samplerate from my repo, easier to install
-#  - pip install https://github.com/ThomasLecocq/samplerate/archive/master.zip
-  # done
   - ls -la
 
 install:
@@ -75,5 +69,11 @@ install:
   - cd
 
 script:
-  - msnoise test
+  - mkdir empty
+  - cd empty
+#  - msnoise test
+  - msnoise config --set plugins=msnoise_tomo
+  - msnoise p tomo install
+  - msnoise p tomo info
+
 
