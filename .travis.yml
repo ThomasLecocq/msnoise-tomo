@@ -2,7 +2,7 @@
 # https://gist.github.com/dan-blanchard/7045057
 # and
 # https://github.com/Jorge-C/ordination/blob/master/.travis.yml
-language: python
+language: c
 
 matrix:
   include:
@@ -11,15 +11,9 @@ matrix:
     #  anaconda..)
     - os: linux
       env: PYTHON_VERSION=2.7
-      language: python
-
-    - os: linux
-      env: PYTHON_VERSION=3.4
-      language: python
 
     - os: linux
       env: PYTHON_VERSION=3.5
-      language: python
 
 
 sudo: false
@@ -72,7 +66,7 @@ install:
 script:
   - mkdir empty
   - cd empty
-#  - msnoise test
+  - msnoise test
   - msnoise config --set plugins=msnoise_tomo
   - msnoise p tomo install
   - msnoise p tomo info
