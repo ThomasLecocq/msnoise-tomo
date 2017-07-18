@@ -120,7 +120,7 @@ def fitellipse( x, opt = 'nonlinear', **kwargs ):
     if x.shape[1] == 2:
         x = x.T
     if x.shape[1] < 6:
-        raise RuntimeError, 'fitellipse:InsufficientPoints At least 6 points required to compute fit'
+        raise RuntimeError
     
     ## Constraints are Euclidean-invariant, so improve conditioning by removing
     ## centroid
@@ -336,7 +336,7 @@ def conic2parametric(A, bv, c):
     
     ## If the determinant < 0, it's not an ellipse
     if prod(D) <= 0:
-        raise RuntimeError, 'fitellipse:NotEllipse Linear fit did not produce an ellipse'
+        raise RuntimeError
     
     ## We have b_h' = 2 * t' * A + b'
     t = -0.5 * linalg.solve(A, bv)

@@ -1,0 +1,4 @@
+LIBRARY vg_fta.dll
+EXPORTS
+    usage
+    main
