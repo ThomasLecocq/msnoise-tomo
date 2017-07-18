@@ -18,15 +18,6 @@ matrix:
 
 sudo: false
 
-# Need to set this so that packages installed with apt-get are available
-virtualenv:
-  system_site_packages: true
-
-addons:
-  apt:
-    packages:
-      - libsamplerate0
-      - libsamplerate0-dev
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -48,7 +39,7 @@ before_install:
   - hash -r
   - conda update -q --yes conda
   # Installs required packages
-  - conda install --yes -q pip python=$TRAVIS_PYTHON_VERSION
+  - conda install --yes -q pip python=$PYTHON_VERSION
   - conda install --yes -q numpy scipy matplotlib statsmodels pandas sqlalchemy
   - conda install --yes -q sphinx jinja2 flask pymysql click
   - conda install --yes -q lxml pyqt
