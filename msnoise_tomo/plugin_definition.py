@@ -53,6 +53,10 @@ def ftan(pair, bmin, bmax, show):
     from .ftan import main
     main(pair, bmin, bmax, show)
 
+@click.command()
+def iftan():
+    from .iftan import main
+    main()
 
 @click.command()
 def prepare_tomo():
@@ -98,6 +102,7 @@ tomo.add_command(ftan_example)
 tomo.add_command(prepare_ccf)
 tomo.add_command(prepare_tomo)
 tomo.add_command(ftan)
+tomo.add_command(iftan)
 tomo.add_command(install)
 tomo.add_command(answt)
 tomo.add_command(plot)

@@ -65,7 +65,21 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
     D = D[isort]
     per = D[:,0]
     disper = D[:,1]
-    return per, disper
+
+    command = [ftan, " ", filename, ' fmin=', fmin, ' fmax=', fmax,
+               ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin, ' bmax=',
+               bmax,
+               ' disp=all out=mat diag=', diagramtype, ' nfreq=', nfreq,
+               ' ampMin=', ampmin]
+
+    com = "".join([str(a) for a in command])
+    print(com)
+    os.system(com)
+    seeds = np.loadtxt('write_disp.txt')
+    isort = np.argsort(seeds[:, 0])
+    seeds = seeds[isort]
+
+    return per, disper, seeds
 
 
 if __name__ == "__main__":

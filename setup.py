@@ -13,13 +13,19 @@ def pre_install_build():
         os.system("g++ -c src/%s" % module)
 
     if sys.platform[:3] == "win":
-        os.system("gcc -m32 -lm src/mk_MatSmoothing.c -o msnoise_tomo/lib/mk_MatSmoothing.exe")
-        os.system("gcc -m32 -lm src/mk_MatPaths.c -o msnoise_tomo/lib/mk_MatPaths.exe")
-        os.system("g++ src/vg_fta.cpp libfta.o readsac.o configparser.o fta_param.o -lm fft_NR.o -o msnoise_tomo/lib/ftan.exe")
+        os.system("gcc -m32 src/mk_MatSmoothing.c -lm -o msnoise_tomo/lib/mk_MatSmoothing.exe")
+        os.system("gcc -m32 src/mk_MatPaths.c -lm -o msnoise_tomo/lib/mk_MatPaths.exe")
+        os.system("g++ src/vg_fta.cpp libfta.o readsac.o configparser.o fta_param.o fft_NR.o -lm -o msnoise_tomo/lib/ftan.exe")
     else:
-        os.system("make -C ./src/ all")
-        os.system("mv ./src/mk_MatPaths ./src/mk_MatSmoothing ./msnoise_tomo/lib/")
-        os.system("g++ src/vg_fta.cpp libfta.o readsac.o configparser.o fta_param.o fft_NR.o -lm -o msnoise_tomo/lib/ftan")
+        os.system(
+            "gcc -m32 src/mk_MatSmoothing.c -lm -o msnoise_tomo/lib/mk_MatSmoothing")
+        os.system(
+            "gcc -m32 src/mk_MatPaths.c -lm -o msnoise_tomo/lib/mk_MatPaths")
+        os.system(
+            "g++ src/vg_fta.cpp libfta.o readsac.o configparser.o fta_param.o fft_NR.o -lm -o msnoise_tomo/lib/ftan")
+        # os.system("make -C ./src/ all")
+        # os.system("mv ./src/mk_MatPaths ./src/mk_MatSmoothing ./msnoise_tomo/lib/")
+        # os.system("g++ src/vg_fta.cpp libfta.o readsac.o configparser.o fta_param.o fft_NR.o -lm -o msnoise_tomo/lib/ftan")
 
 pre_install_build()
 

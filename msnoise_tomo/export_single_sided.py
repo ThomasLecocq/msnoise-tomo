@@ -42,10 +42,10 @@ def main():
                     st1.stats.sac.dist = get_interstation_distance(station1, station2, station1.coordinates)
                     st1.stats.sac.npts = st1.stats.npts
                     st1.stats.sac.kevnm = sta1
-                    st1.stats.sac.kestnm = sta2
-                    fn1 = "%s_%s_%s_%s_REAL.sac"%(station1.net, station1.sta, station2.net, station2.sta)
-                    fn1 = os.path.join("TOMO_SAC", fn1)
-                    st1.write(fn1, format="SAC")
+                    st1.stats.sac.kstnm = sta2
+                    # fn1 = "%s_%s_%s_%s_REAL.sac"%(station1.net, station1.sta, station2.net, station2.sta)
+                    # fn1 = os.path.join("TOMO_SAC", "%02i" % filterid, components, fn1)
+                    # st1.write(fn1, format="SAC")
 
                     st2 = ref.copy()
                     st2.data = st2.data[:ref.stats.npts//2+1][::-1]
@@ -62,16 +62,19 @@ def main():
                     st2.stats.sac.dist = get_interstation_distance(station1, station2, station1.coordinates)
                     st2.stats.sac.npts = st2.stats.npts
                     st2.stats.sac.kevnm = sta2
-                    st2.stats.sac.kestnm = sta1
-                    fn2 = "%s_%s_%s_%s_REAL.sac"%(station2.net, station2.sta, station1.net, station1.sta)
-                    fn2 = os.path.join("TOMO_SAC", fn2)
-                    st2.write(fn2, format="SAC")
+                    st2.stats.sac.kstnm = sta1
+                    # fn2 = "%s_%s_%s_%s_REAL.sac"%(station2.net, station2.sta, station1.net, station1.sta)
+                    # fn2 = os.path.join("TOMO_SAC", "%02i" % filterid, components, fn2)
+                    # st2.write(fn2, format="SAC")
 
                     st3 = st1
                     st3.data += st2.data
                     st3.data /= 2.0
                     fn3 = "%s_%s_%s_%s_MEAN.sac"%(station1.net, station1.sta, station2.net, station2.sta)
-                    fn3 = os.path.join("TOMO_SAC", fn3)
+                    outpath = os.path.join("TOMO_SAC", "%02i" % filterid, components)
+                    if not os.path.isdir(outpath):
+                        os.makedirs(outpath)
+                    fn3 = os.path.join(outpath, fn3)
                     st3.write(fn3, format="SAC")
 
             update_job(db, "REF", pair, jobtype='TOMO_SAC', flag='D')

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from .ftan_call import pickgroupdispcurv
 from matplotlib.cm import hot_r as viridis
 from msnoise.api import *
-
+import shutil
 
 def main(pair, bmin, bmax, show):
     PLOTDIAGR=show
@@ -42,7 +42,7 @@ def main(pair, bmin, bmax, show):
                 # SACfilelist.append(fn)
                 # fn = os.path.join("TOMO_SAC", "%s_%s_REAL.SAC"%(netsta2.replace('.','_'), netsta1.replace('.','_')))
                 # SACfilelist.append(fn)
-                fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.SAC"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
+                fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.sac"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
                 SACfilelist.append(fn)
         else:
             for pi in pair:
@@ -51,8 +51,9 @@ def main(pair, bmin, bmax, show):
                 # SACfilelist.append(fn)
                 # fn = os.path.join("TOMO_SAC", "%s_%s_REAL.SAC"%(netsta2.replace('.','_'), netsta1.replace('.','_')))
                 # SACfilelist.append(fn)
-                fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.SAC"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
+                fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.sac"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
                 SACfilelist.append(fn)
+                break
             pair = None
         print(SACfilelist)
         GVdisp = [{},]*len(SACfilelist)
@@ -64,7 +65,7 @@ def main(pair, bmin, bmax, show):
             dist = st[0].stats.sac.dist
             dt = st[0].stats.delta
 
-            per, disper = pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+            per, disper, seeds = pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
                                             diagramtype, nfreq, ampmin, dist)
             basename = "%s.%s_%s.%s_%s" % (NET1, STA1, NET2, STA2, crap)
             basename = basename.replace(".SAC","")
@@ -74,7 +75,8 @@ def main(pair, bmin, bmax, show):
                       "write_ph.txt",
                       "write_TV.txt",
                       ]:
-                os.system("rename %s %s"% (_, _.replace("write",basename)))
+                shutil.move(_, _.replace("write",basename))
+
             if PLOTDIAGR:
                 U = np.loadtxt('%s_TV.txt'%basename)
                 P = np.loadtxt('%s_FP.txt'%basename)
