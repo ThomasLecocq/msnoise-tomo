@@ -12,7 +12,7 @@ for i, arg in enumerate(args):
     enc_arg = arg.encode('utf-8')
     argv[i] = ctypes.create_string_buffer(enc_arg)
 
-libsmooth.main(argc, argv)
+print("exit:", libsmooth.main(argc, argv))
 
 
 
@@ -27,8 +27,8 @@ diagramtype = 'PV'
 nfreq = 40
 ampmin = 0.05
 dist = 1.2028e3
-ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, 0)
+print("exit:",ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+                      diagramtype, nfreq, ampmin, 0))
 
 V = np.loadtxt('write_TV.txt')
 P = np.loadtxt('write_FP.txt')

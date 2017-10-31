@@ -39,13 +39,13 @@ before_install:
   - hash -r
   - conda update -q --yes conda
   # Installs required packages
-  - conda install --yes -q pip python=$PYTHON_VERSION
-  - conda install --yes -q numpy scipy matplotlib statsmodels pandas sqlalchemy
-  - conda install --yes -q sphinx jinja2 flask pymysql click
-  - conda install --yes -q lxml pyqt
-#  - conda install --yes -q -c conda-forge obspy
+  - conda install --yes -q -c conda-forge pip python=$PYTHON_VERSION
+  - conda install --yes -q -c conda-forge numpy scipy matplotlib statsmodels pandas sqlalchemy
+  - conda install --yes -q -c conda-forge sphinx jinja2 flask pymysql click
+  - conda install --yes -q -c conda-forge lxml pyqt
+  - conda install --yes -q -c conda-forge pyproj shapely
+  - conda install --yes -q -c conda-forge obspy
   - conda install --yes -q -c conda-forge flask-admin markdown codecov
-  - pip install http://msnoise.org/obspy-master.zip
   - pip install multiprocessing_logging
   - pip install http://msnoise.org/master.zip
   - ls -la
