@@ -8,9 +8,9 @@ environment:
     CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\misc\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - PYTHON_VERSION: 2.7
-      PYTHON_ARCH: 64
-      MINICONDA: C:\Miniconda-x64
+#    - PYTHON_VERSION: 2.7
+#      PYTHON_ARCH: 64
+#      MINICONDA: C:\Miniconda-x64
 
     - PYTHON_VERSION: 3.6
       PYTHON_ARCH: 64
@@ -38,6 +38,7 @@ install:
   - "%CMD_IN_ENV% conda install --yes -q -c conda-forge sphinx jinja2 flask pymysql click"
   - "%CMD_IN_ENV% conda install --yes -q -c conda-forge lxml"
   - "%CMD_IN_ENV% conda install --yes -q -c conda-forge obspy"
+  - "%CMD_IN_ENV% conda install --yes -q -c conda-forge pyproj shapely"
   - "%CMD_IN_ENV% conda install --yes -q -c conda-forge flask-admin markdown"
   - "%CMD_IN_ENV% pip install multiprocessing_logging"
   - "%CMD_IN_ENV% pip install http://msnoise.org/master.zip"
