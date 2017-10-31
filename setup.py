@@ -155,7 +155,10 @@ def setupPackage():
         package_data={},
         namespace_packages=[],
         include_package_data=True,
-        install_requires=['msnoise',],
+        install_requires=['msnoise',
+                          'shapely',
+                          'pyproj',
+                          ],
         entry_points={
             'msnoise.plugins.commands': [
                 'tomo = msnoise_tomo.plugin_definition:tomo',
