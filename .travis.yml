@@ -13,7 +13,7 @@ matrix:
       env: PYTHON_VERSION=2.7
 
     - os: linux
-      env: PYTHON_VERSION=3.5
+      env: PYTHON_VERSION=3.6
 
 
 sudo: false
