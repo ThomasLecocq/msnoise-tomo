@@ -3,7 +3,7 @@ from future.utils import native_str
 import ctypes
 import numpy as np
 
-libdir = os.path.join(os.path.dirname(__file__), "vg_fta.cp36-win_amd64.pyd")
+libdir = os.path.join(os.path.dirname(__file__), "vg_fta.cpython-36m-x86_64-linux-gnu.so")
 libfta = ctypes.CDLL(str(libdir))
 
 LP_c_char = ctypes.POINTER(ctypes.c_char)
@@ -15,20 +15,20 @@ libfta.main.restype = ctypes.c_int
 
 
 def ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, dist):
+                      diagramtype, nfreq, ampmin, dist, disp):
     args = ["placeholder",
             filename,
-            'fmin=%f' % fmin,
-            'fmax=%f' % fmax,
-            'vgMin=%f' % vgmin,
-            'vgMax=%f' % vgmax,
-            'bmin=%f' % bmin,
-            'bmax=%f' % bmax,
-            'disp=none',
+            'fmin=%f' % float(fmin),
+            'fmax=%f' % float(fmax),
+            'vgMin=%f' % float(vgmin),
+            'vgMax=%f' % float(vgmax),
+            'bmin=%f' % float(bmin),
+            'bmax=%f' % float(bmax),
+            'disp=%s' % disp,
             'out=mat',
             'diag=%s' % diagramtype,
-            'nfreq=%i' % nfreq,
-            'ampMin=%f' % ampmin
+            'nfreq=%i' % int(nfreq),
+            'ampMin=%f' % float(ampmin)
             ]
 
     argc = len(args)

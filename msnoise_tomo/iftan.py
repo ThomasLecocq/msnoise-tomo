@@ -48,6 +48,8 @@ def main():
 
     nfreq = int(get_config(db, "ftan_nfreq", plugin="Tomo"))
     ampmin = float(get_config(db, "ftan_ampmin", plugin="Tomo"))
+    global data
+    data = pd.DataFrame()
     # nfreq = 100
     db = connect()
 
@@ -56,7 +58,17 @@ def main():
         files = sorted(glob.glob(os.path.join(os.path.realpath(folder),"*_MEAN.*")))
         cb['values'] = files
         cb_val.set(files[0])
-
+    
+    def save():
+        global data
+        print(data.head())
+        filename = cb_val.get()
+        filename = filename.replace("TOMO_SAC", "TOMO_DISP").replace(".sac",".csv").replace(".SAC",".csv")
+        if not os.path.isdir(os.path.split(filename)[0]):
+            os.makedirs(os.path.split(filename)[0])
+        data.to_csv(filename)
+        
+    
     def process(e=None):
         filename = cb_val.get()
         NET1, STA1, NET2, STA2, crap = os.path.split(filename)[1].split('_')
@@ -76,17 +88,17 @@ def main():
         ccf.subplots_adjust(bottom=0.25)
         ccfcanvas.show()
 
-
         per, disper, seeds = pickgroupdispcurv(filename,
-                                        fmin,
-                                        _fmax.get(),
-                                        _vgmin.get(),
-                                        _vgmax.get(),
-                                        _bmin.get(),
-                                        _bmax.get(),
-                                        diagramtype,
-                                        nfreq,
-                                        _ampmin.get(), dist)
+                                               _fmin.get(),
+                                               _fmax.get(),
+                                               _vgmin.get(),
+                                               _vgmax.get(),
+                                               _bmin.get(),
+                                               _bmax.get(),
+                                               diagramtype,
+                                               nfreq,
+                                               _ampmin.get(),
+                                               dist)
         basename = "%s.%s_%s.%s_%s" % (NET1, STA1, NET2, STA2, crap)
         basename = basename.replace(".SAC", "")
         for _ in ["write_amp.txt",
@@ -108,14 +120,25 @@ def main():
         per = per[iu]
         disper = disper[iu]
         Per, Vitg = np.meshgrid(P, U)
-
+        f.clf()
         p = f.gca()
         p.cla()
-        p.contourf(Per, Vitg, amp, 35, cmap=cm_val.get())
-        p.plot(per, disper,'-ok',lw=1.5)
-        p.scatter(seeds[:,0], seeds[:,1], s=10,marker='d', facecolor='w',
+        if int(_normed.get()):
+            for i in range(amp.shape[1]):
+                amp[:,i] /= amp[:,i].max() 
+        
+        c = p.contourf(Per, Vitg, amp, 35, cmap=cm_val.get())
+        f.colorbar(c)
+        
+        idxx = np.where(float(_minWL.get())*per*disper < dist)[0]
+        p.plot(per, disper,'-ok', lw=1.5)
+        p.scatter(per[idxx], disper[idxx], marker='o', s=100, c="green", lw=1.5)
+        p.scatter(seeds[:,0], seeds[:,1], s=10, marker='d', facecolor='w',
                   edgecolor="k")
-        # p.colorbar()
+        global data
+        data = pd.DataFrame(disper[idxx], index=per[idxx], columns=["Velocity"])
+        data.index.name = "Period"
+        
         # TODO add axes labels depending on diagramtype
         p.set_xlabel("Period (s)", fontsize=12)
         p.set_ylabel('Velocity (km/s)', fontsize=12)
@@ -141,7 +164,7 @@ def main():
     #root
     root = Tk()
     root.title("MSNoise-TOMO: Time-Frequency & Dispersion Curve Picking Tool")
-
+    # root.resizable(True, True)
     # menubar = Menu(root)
     # filemenu = Menu(menubar, tearoff=0)
     # filemenu.add_command(label="Open", command=openfile)
@@ -195,10 +218,15 @@ def main():
     minSNRSize.grid(column=2, row=4, sticky=(W, E))
     ttk.Label(mainframe, text="Min SNR ", style='My.TLabel').grid(column=1, row=4, sticky=W)
 
-    _minWL = StringVar(root, value=0.0)
+    _minWL = StringVar(root, value=1.0)
     minWLSize = ttk.Entry(mainframe, width=7, textvariable=_minWL)
     minWLSize.grid(column=2, row=5, sticky=(W, E))
     ttk.Label(mainframe, text="Min Wavelength ", style='My.TLabel').grid(column=1, row=5, sticky=W)
+
+    _fmin = StringVar(root, value=fmin)
+    fminSize = ttk.Entry(mainframe, width=7, textvariable=_fmin)
+    fminSize.grid(column=2, row=6, sticky=(W, E))
+    ttk.Label(mainframe, text="Min Frequency ", style='My.TLabel').grid(column=1, row=6, sticky=W)
 
     _fmax = StringVar(root, value=fmax)
     fmaxSize = ttk.Entry(mainframe, width=7, textvariable=_fmax)
@@ -240,16 +268,24 @@ def main():
     ccfcanvas = FigureCanvasTkAgg(ccf, master=mainframe)
     ccfcanvas.get_tk_widget().grid(row=2, column=3, rowspan=2)
 
-    f = Figure(figsize=(5, 4), dpi=100)
+    f = Figure(dpi=100)
     canvas = FigureCanvasTkAgg(f, master=mainframe)
     canvas.get_tk_widget().grid(row=4, column=3, rowspan=9)
 
-    ttk.Button(mainframe, text="Compute", command=process, style='My.TButton').grid(column=2, row=13, sticky=W)
+    _normed = IntVar()
+    chh = ttk.Checkbutton(mainframe, text="Normed", variable=_normed, \
+                     onvalue=1, offvalue=0).grid(column=1, row=13, sticky=W)
+
+    ttk.Button(mainframe, text="Compute", command=process,
+               style='My.TButton').grid(column=2, row=13, sticky=W)
+
+    ttk.Button(mainframe, text="Save", command=save,
+               style='My.TButton').grid(column=2, row=14, sticky=W)
 
     toolbar = NavigationToolbar2TkAgg(canvas, mainframe)
     toolbar.update()
     toolbar.grid(column=3, row=14, columnspan=1, sticky=W)
-    canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=0)
+    # canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=0)
 
     def onclick(event):
         print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %

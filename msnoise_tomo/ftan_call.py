@@ -1,23 +1,27 @@
 import os
 import sys
+import time
 
 import numpy as np
-
+from .lib.libvg_fta import ftan
 
 def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
                       diagramtype, nfreq, ampmin, dist):
-    if sys.platform[:3] == "win":
-        ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan.exe")
-    else:
-        ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan")
+    # if sys.platform[:3] == "win":
+    #     ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan.exe")
+    # else:
+    #     ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan")
 
     command = [ftan," ", filename, ' fmin=', fmin, ' fmax=', fmax,
         ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin ,' bmax=', bmax,
         ' disp=none out=mat diag=', diagramtype, ' nfreq=', nfreq, ' ampMin=', ampmin]
-
+    
+    ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+         diagramtype, nfreq, ampmin, dist, disp="none")
+    time.sleep(0.1)
     com = "".join([str(a) for a in command])
     print(com)
-    os.system(com)
+    # os.system(com)
 
     V = np.loadtxt('write_TV.txt')
     P = np.loadtxt('write_FP.txt')
@@ -58,8 +62,11 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
 
     com = "".join([str(a) for a in command])
     print(com)
-    os.system(com)
+    # os.system(com)
 
+    ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+         diagramtype, nfreq, ampmin, dist, disp="cont")
+    time.sleep(0.1)
     D = np.loadtxt('write_disp.txt')
     isort = np.argsort(D[:,0])
     D = D[isort]
@@ -74,7 +81,12 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
 
     com = "".join([str(a) for a in command])
     print(com)
-    os.system(com)
+    # os.system(com)
+    
+    ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+         diagramtype, nfreq, ampmin, dist, disp="cont")
+    time.sleep(0.1)
+    
     seeds = np.loadtxt('write_disp.txt')
     isort = np.argsort(seeds[:, 0])
     seeds = seeds[isort]
