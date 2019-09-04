@@ -49,6 +49,7 @@ before_install:
   - ls -la
 
 install:
+  - python setup.py bdist_wheel
   - python setup.py install
   - cd
 
@@ -56,8 +57,13 @@ script:
   - mkdir empty
   - cd empty
   - msnoise db init --tech 1
-  - msnoise config --set plugins=msnoise_tomo
+  - msnoise config set plugins=msnoise_tomo
   - msnoise p tomo install
   - msnoise p tomo info
 
-
+deploy:
+  provider: bintray
+  file: "bintray.json"
+  user: "thomaslecocq"
+  key: "$BINTRAY_API"
+  skip_cleanup: true # to upload artifacts created during the build
