@@ -7,7 +7,7 @@ import shutil
 import glob
 import random
 
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk as NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
@@ -86,7 +86,7 @@ def main():
         p.plot(taxis, st[0].data)
         p.plot(taxis[zone], st[0].data[zone], c='r')
         ccf.subplots_adjust(bottom=0.25)
-        ccfcanvas.show()
+        ccfcanvas.draw()
 
         per, disper, seeds = pickgroupdispcurv(filename,
                                                _fmin.get(),
@@ -145,7 +145,7 @@ def main():
         p.set_xlim(xmin, xmax)
         p.set_ylim(ymin, ymax)
         p.set_title("%s.%s - %s.%s (%.2f km)" % (NET1, STA1, NET2, STA2, dist))
-        canvas.show()
+        canvas.draw()
 
     def previous_file(e=None):
         idx = cb['values'].index(cb.get())
@@ -282,9 +282,9 @@ def main():
     ttk.Button(mainframe, text="Save", command=save,
                style='My.TButton').grid(column=2, row=14, sticky=W)
 
-    toolbar = NavigationToolbar2TkAgg(canvas, mainframe)
-    toolbar.update()
-    toolbar.grid(column=3, row=14, columnspan=1, sticky=W)
+    # toolbar = NavigationToolbar2TkAgg(canvas, mainframe)
+    # toolbar.update()
+    # toolbar.grid(column=3, row=14, columnspan=1, sticky=W)
     # canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=0)
 
     def onclick(event):

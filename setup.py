@@ -22,6 +22,9 @@ from numpy.distutils.command.build import build
 from numpy.distutils.command.install import install
 from numpy.distutils.exec_command import exec_command, find_executable
 from numpy.distutils.misc_util import Configuration
+ 
+
+from obspy.core.util.libnames import _get_lib_name
 
 print(sys.path.pop(0))
 
@@ -117,7 +120,8 @@ def configuration(parent_package="", top_path=None):
     if IS_MSVC:
         # get export symbols
         kwargs['export_symbols'] = export_symbols(path, 'mkMatSmoothing.def')
-    config.add_extension("mkMatSmoothing", files, **kwargs)
+    config.add_extension(_get_lib_name("mkMatSmoothing", add_extension_suffix=False),
+                                       files, **kwargs)
 
 
     # FTAN
@@ -135,7 +139,8 @@ def configuration(parent_package="", top_path=None):
     if IS_MSVC:
         # get export symbols
         kwargs['export_symbols'] = export_symbols(path, 'vg_fta.def')
-    config.add_extension("vg_fta", files, **kwargs)
+
+    config.add_extension(_get_lib_name("vg_fta", add_extension_suffix=False), files, **kwargs)
 
 
     # HACK to avoid: "WARNING: '' not a valid package name; please use only .-separated package names in setup.py"

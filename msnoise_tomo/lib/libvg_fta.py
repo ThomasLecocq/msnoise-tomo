@@ -2,9 +2,14 @@ import os
 from future.utils import native_str
 import ctypes
 import numpy as np
+from obspy.core.util.libnames import cleanse_pymodule_filename, _get_lib_name
+lib = "vg_fta"
 
-libdir = os.path.join(os.path.dirname(__file__), "vg_fta.cpython-36m-x86_64-linux-gnu.so")
-libfta = ctypes.CDLL(str(libdir))
+libname = _get_lib_name(lib, add_extension_suffix=True)
+libname = os.path.join(os.path.dirname(__file__), libname)
+
+
+libfta = ctypes.CDLL(str(libname))
 
 LP_c_char = ctypes.POINTER(ctypes.c_char)
 LP_LP_c_char = ctypes.POINTER(LP_c_char)
@@ -15,7 +20,7 @@ libfta.main.restype = ctypes.c_int
 
 
 def ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, dist, disp):
+                      diagramtype, nfreq, ampmin, dist, disp=0):
     args = ["placeholder",
             filename,
             'fmin=%f' % float(fmin),
