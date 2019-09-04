@@ -63,7 +63,7 @@ script:
 
 deploy:
   provider: bintray
-  file: "bintray.json"
+  file: "/home/travis/build/ThomasLecocq/msnoise-tomo/bintray.json"
   user: "thomaslecocq"
   key: "$BINTRAY_API"
   skip_cleanup: true # to upload artifacts created during the build
