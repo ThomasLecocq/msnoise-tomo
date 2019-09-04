@@ -31,7 +31,10 @@
 
     "files":
         [
-        {"includePattern": "dist/(.*\\.whl)", "uploadPattern": "whl/$2"}
+        {"includePattern": "dist/(.*\\.whl)", "uploadPattern": "whl/$1",
+        "matrixParams": {"override": 1 }
+        }
+            
         ],
     "publish": true
 }

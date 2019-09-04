@@ -60,11 +60,11 @@ script:
   - msnoise config set plugins=msnoise_tomo
   - msnoise p tomo install
   - msnoise p tomo info
-  - cd /home/travis/build/ThomasLecocq/msnoise-tomo
+  - cd $TRAVIS_BUILD_DIR
 
 deploy:
   provider: bintray
-  file: "/home/travis/build/ThomasLecocq/msnoise-tomo/bintray.json"
+  file: "bintray.json"
   user: "thomaslecocq"
   key: "$BINTRAY_API"
   skip_cleanup: true # to upload artifacts created during the build
