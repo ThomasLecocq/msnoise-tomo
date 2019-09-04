@@ -23,6 +23,7 @@ from numpy.distutils.command.install import install
 from numpy.distutils.exec_command import exec_command, find_executable
 from numpy.distutils.misc_util import Configuration
  
+from setuptools import find_packages
 
 from obspy.core.util.libnames import _get_lib_name
 
@@ -35,16 +36,16 @@ SETUP_DIRECTORY = os.path.dirname(os.path.abspath(inspect.getfile(
 
 print(SETUP_DIRECTORY)
 
-def find_packages():
-    """
-    Simple function to find all modules under the current folder.
-    """
-    modules = []
-    for dirpath, _, filenames in os.walk(os.path.join(SETUP_DIRECTORY,
-                                                      "msnoise_tomo")):
-        if "__init__.py" in filenames:
-            modules.append(os.path.relpath(dirpath, SETUP_DIRECTORY))
-    return [_i.replace(os.sep, ".") for _i in modules]
+# def find_packages():
+#     """
+#     Simple function to find all modules under the current folder.
+#     """
+#     modules = []
+#     for dirpath, _, filenames in os.walk(os.path.join(SETUP_DIRECTORY,
+#                                                       "msnoise_tomo")):
+#         if "__init__.py" in filenames:
+#             modules.append(os.path.relpath(dirpath, SETUP_DIRECTORY))
+#     return [_i.replace(os.sep, ".") for _i in modules]
 
 
 # check for MSVC
@@ -154,10 +155,10 @@ def configuration(parent_package="", top_path=None):
 def setupPackage():
     setup(
         name='msnoise_tomo',
-        version='0.1a0',
+        version='0.1a1',
         packages=find_packages(),
         package_dir={"msnoise_tomo": "msnoise_tomo"},
-        package_data={},
+        package_data={'msnoise_tomo': ['img/*.*']},
         namespace_packages=[],
         include_package_data=True,
         install_requires=['msnoise',
