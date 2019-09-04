@@ -10,11 +10,10 @@ matrix:
     # (or, well, at least the lowest version number that is available through
     #  anaconda..)
     - os: linux
-      env: PYTHON_VERSION=2.7
+      env: PYTHON_VERSION=3.7
 
-    - os: linux
-      env: PYTHON_VERSION=3.6
-
+    - os: osx
+      env: PYTHON_VERSION=3.7
 
 sudo: false
 
@@ -25,8 +24,7 @@ before_install:
     else
       export OS="Linux";
     fi
-  # MySQL database
-  - mysql -e 'create database msnoise;'
+
   # Python and related stuff
   - if [[ "${PYTHON_VERSION:0:1}" == '2' ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda-latest-${OS}-x86_64.sh -O miniconda.sh;
@@ -45,9 +43,9 @@ before_install:
   - conda install --yes -q -c conda-forge lxml pyqt
   - conda install --yes -q -c conda-forge pyproj shapely
   - conda install --yes -q -c conda-forge obspy
-  - conda install --yes -q -c conda-forge flask-admin markdown codecov
+  - conda install --yes -q -c conda-forge flask-admin markdown codecov logbook
   - pip install multiprocessing_logging
-  - pip install http://msnoise.org/master.zip
+  - pip install msnoise
   - ls -la
 
 install:
@@ -57,7 +55,7 @@ install:
 script:
   - mkdir empty
   - cd empty
-  - msnoise test
+  - msnoise db init --tech 1
   - msnoise config --set plugins=msnoise_tomo
   - msnoise p tomo install
   - msnoise p tomo info
