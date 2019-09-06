@@ -32,13 +32,13 @@ def install():
     main()
 
 
-@click.command()
+@click.command(name="prepare_ccf")
 def prepare_ccf():
     from .export_single_sided import main
     main()
 
 
-@click.command()
+@click.command(name="ftan_example")
 def ftan_example():
     from .examplepickdispcurve import main
     main()
@@ -58,7 +58,7 @@ def iftan():
     from .iftan import main
     main()
 
-@click.command()
+@click.command(name="prepare_tomo")
 def prepare_tomo():
     from .prepare_tomo import main
     main()
@@ -82,7 +82,7 @@ def answt(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
     main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show)
 
 
-@click.command()
+@click.command(name="prepare_1d")
 def prepare_1d():
     from .prepare_1d import main
     main()

@@ -1,0 +1,117 @@
+dl .attribute {
+    margin-left: 50px;
+}
+
+dl .method {
+    margin-left: 50px;
+}
+
+dl .classmethod {
+    margin-left: 50px;
+}
+
+dl .staticmethod {
+    margin-left: 50px;
+}
+
+dd > p {
+    padding-left: 20px;
+}
+
+.property {
+    font-weight: 100;
+    padding-right: 2px;
+}
+
+dl > dt {
+    background-color: #DDDDDD;
+    border-radius: 5px;
+    padding: 5px;
+    color: #222222;
+    font-size: 16px;
+}
+
+.admonition {
+    background-color: #FFE3E3;
+    border-color: #FFC4C4;
+    color: #555555;
+}
+
+a {
+    color:#006bbe;
+}
+
+#centerer{
+    max-width:800px;
+    margin:auto;
+    text-align: center;
+}
+
+#half_footer{
+    max-width:50%;
+    float:left;
+    padding-bottom:40px;
+    text-align: center;
+    display: table-cell;
+}
+
+div .third_footer{
+    max-width:33%;
+    float:left;
+    padding-bottom:40px;
+    text-align: center;
+    display: table-cell;
+}
+
+
+#clear {
+    clear:both;
+}
+
+h2 {
+    border-top: solid 1px silver;
+    margin-top: 20px;
+    padding-top: 10px;
+}
+
+blockquote p{
+	font-size:0.8em;
+}
+
+div .section p {
+    margin-left:5px;
+}
+
+div .section h2 {
+    text-decoration: underline;
+}
+
+body {
+    font-size: 16px;
+}
+
+#right-column {
+    padding: 20px 0;
+    margin-left: 300px;
+    background-color: #fff;
+     max-width: none;
+}
+
+.wy-nav-content {
+max-width:none;
+}
+
+.sphx-glr-thumbcontainer {
+    min-height: 320px !important;
+    margin: 20px !important;
+}
+.sphx-glr-thumbcontainer .figure {
+    width: 250px !important;
+}
+.sphx-glr-thumbcontainer img {
+    max-height: 250px !important;
+    width: 250px !important;
+}
+.sphx-glr-thumbcontainer a.internal {
+    padding: 270px 10px 0 !important;
+}

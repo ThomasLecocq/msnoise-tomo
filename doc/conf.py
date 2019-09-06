@@ -82,6 +82,7 @@ out.write('Help on the msnoise-tomo commands\n')
 out.write('=================================\n\n')
 out.write('This page shows all the command line interface commands\n\n')
 C = M.tomo.commands
+print(C, dir(C))
 for command in sorted(C):
     group = ""
     if hasattr(C[command], "group"):
@@ -109,6 +110,7 @@ for command in sorted(C):
     else:
         out.write('%s\n'%command)
         out.write('-'*len(command)+'\n')
+        print(command)
         c = click.Context(command=eval('M.%s'%command))
         data = c.get_help()
         out.write(write_click_help("plugin tomo", command, data))
@@ -203,18 +205,17 @@ autodoc_member_order = 'bysource'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 # html_theme = 'sphinxdoc'
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
+html_theme = "sphinx_rtd_theme"
+html_theme_path = ["_themes", ]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = {}
-html_theme_options = {'bootswatch_theme': "lumen",
-                    "navbar_site_name":"Menu",
-                    "navbar_sidebarrel":True,
-                    "source_link_position":"footer",
-                    }
+html_theme_options = {'navigation_depth': 2,
+                     }
+
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -388,3 +389,6 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
+
+def setup(app):
+    app.add_stylesheet('my-styles.css')

@@ -49,7 +49,7 @@ if "%1" == "html" (
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Build finished. The HTML pages are in %BUILDDIR%/html.
-	REM xcopy .build\html L:\msnoise.org\plugins\msnoise-tomo\doc\master /s /y /e /Q
+	xcopy .build\html L:\msnoise.org\plugins\msnoise-tomo\doc /s /y /e /Q
 	goto end
 )
 
