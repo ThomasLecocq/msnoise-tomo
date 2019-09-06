@@ -19,7 +19,7 @@
     },
 
     "version": {
-        "name": "0.1b",
+        "name": "0.1",
         "desc": "This is a version",
         "released": "2019-09-03",
         "vcs_tag": "0.1a",
