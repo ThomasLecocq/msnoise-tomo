@@ -51,7 +51,8 @@ def loadG(nX, nY, file, gridfile,ANSWT_toolbox_path):
     # print(command)
     # os.system(command)
     from .intersect import mkpath
-    
+    from .lib.libmk_MatPaths import path
+    path(file, gridfile)
     print('C code done')
     DATA = np.fromfile('matG.bin', dtype=np.float)
     G = DATA.reshape(-1,int(nX*nY))
@@ -166,15 +167,12 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     print('There are %i data to inverse.' % nData1)
     
     # OLD WAY:
-    from .lib.libmk_MatPaths import path
-    path("lpath.txt", gridfile)
 
-    DATA = np.fromfile('matG.bin', dtype=np.float)
-    G = DATA.reshape(-1, int(nX * nY))
-    print("G.shape from old path code", G.shape)
     
-    # GGG=loadG(nX,nY,'lpath.txt',gridfile,path_tb)
     
+    GGG=loadG(nX,nY,'lpath.txt',gridfile, path_tb)
+    print("G.shape from old path code", GGG.shape)
+
     
     
     import pandas as pd
@@ -196,26 +194,38 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     # nX = int(np.floor(np.floor((xmax - xmin) / dx)) + 1)
     # nY = int(np.floor(np.floor((ymax - ymin) / dy)) + 1)
 
-    GGG = mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, False)
-    GGG = GGG[sv]
-    print(GGG.shape)
-    
-    # tmp plot paths to be sure it's OK
-    G2 = GGG.sum(axis=0)
-    G2 = G2.reshape(nX, nY)
-    
-    plt.figure()
-    plt.imshow(G2.T, extent=(xmin, xmax + dx, ymin, ymax + dy / 2.),
-               origin='lower', aspect='auto', interpolation="none",
-               cmap='inferno')
-    cb = plt.colorbar(orientation='vertical', shrink=0.7)
-    cb.set_label('Path length in cell')
-
-    plt.xlim(xmin, xmax + dx)
-    plt.ylim(ymin, ymax + dy / 2.)
-    plt.savefig("paths.png")
-    
+    # GGG = mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, False)
+    # GGG = GGG[sv]
+    # print("G.shape from new path code", GGG.shape)
+    # 
+    # # tmp plot paths to be sure it's OK
+    # G2 = GGG.sum(axis=0)
+    # G2 = G2.reshape(nX, nY)
+    # 
+    # plt.figure()
+    # plt.imshow(GGG1.sum(axis=0).reshape(nX, nY).T,
+    #            extent=(xmin, xmax + dx, ymin, ymax + dy / 2.),
+    #            origin='lower', aspect='auto', interpolation="none",
+    #            cmap='inferno')
+    # cb = plt.colorbar(orientation='vertical', shrink=0.7)
+    # cb.set_label('Path length in cell')
+    # 
+    # plt.xlim(xmin, xmax + dx)
+    # plt.ylim(ymin, ymax + dy / 2.)
+    # plt.savefig("paths_old.png")
+    # 
+    # plt.figure()
+    # plt.imshow(G2.T, extent=(xmin, xmax + dx, ymin, ymax + dy / 2.),
+    #            origin='lower', aspect='auto', interpolation="none",
+    #            cmap='inferno')
+    # cb = plt.colorbar(orientation='vertical', shrink=0.7)
+    # cb.set_label('Path length in cell')
+    # 
+    # plt.xlim(xmin, xmax + dx)
+    # plt.ylim(ymin, ymax + dy / 2.)
+    # plt.savefig("paths_new.png")
     # END NEW WAY
+    
     izero = (np.sum(GGG, axis=1) == 0)
     t_obs[izero] = 0
     GGG=scipy.sparse.lil_matrix(GGG)
@@ -360,7 +370,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         window = np.ones((span,span))/(span*span)
         Dsity = ndimage.convolve(densitypath, window, mode='constant')
         # densitypath(Dsity==0)=NaN;
-        seuil = -1
+        seuil = 0
         id = np.where(Dsity <= seuil)
         print(id)
         M_vel[id] *= np.nan
