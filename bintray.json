@@ -19,7 +19,7 @@
     },
 
     "version": {
-        "name": "0.1a",
+        "name": "0.1b",
         "desc": "This is a version",
         "released": "2019-09-03",
         "vcs_tag": "0.1a",
@@ -31,7 +31,7 @@
 
     "files":
         [
-        {"includePattern": "dist/(.*\\.whl)", "uploadPattern": "whl/$1",
+        {"includePattern": "dist/(.*\\.whl)", "uploadPattern": "0.1/$1",
         "matrixParams": {"override": 1 }
         }
             

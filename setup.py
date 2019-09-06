@@ -166,7 +166,7 @@ def configuration(parent_package="", top_path=None):
 def setupPackage():
     setup(
         name='msnoise_tomo',
-        version='0.1a1',
+        version='0.1b',
         packages=find_packages(),
         package_dir={"msnoise_tomo": "msnoise_tomo"},
         package_data={'msnoise_tomo': ['img/*.*']},
