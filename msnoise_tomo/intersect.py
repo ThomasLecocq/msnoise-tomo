@@ -28,7 +28,7 @@ def mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, greatcircle=False):
             # i+=1
     patches = MultiPolygon(polygons=polygons)
     N = len(stations)
-    G = np.zeros((N*(N-1)/2, len(X)*len(Y)))
+    G = np.zeros((N*(N-1)//2, len(X)*len(Y)))
     
     t = time.time()
     n = 0
@@ -65,8 +65,8 @@ def mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, greatcircle=False):
 
 
 if __name__ == "__main__":
-    gridfile=r"gr/GLISNGrid.dat"
-    stations = pd.read_csv(r'gr/GLISN_STACoord.dat', delimiter=' ', header=None)
+    gridfile=r"DATAFiles/GLISNGrid.txt"
+    stations = pd.read_csv(r'DATAFiles/GLISN_STACoord.dat', delimiter=' ', header=None)
     print(stations[:1])
     stations = np.array([row for id,row in stations.iterrows()])
     
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     dx = 1.0
     dy = 0.75
     print(xmin, xmax)
-    nX=np.floor(np.floor((xmax-xmin)/dx))+1
-    nY=np.floor(np.floor((ymax-ymin)/dy))+1
+    nX=int(np.floor(np.floor((xmax-xmin)/dx))+1)
+    nY=int(np.floor(np.floor((ymax-ymin)/dy))+1)
     
     G2 = mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, True)
     

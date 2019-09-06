@@ -72,12 +72,14 @@ def prepare_tomo():
 @click.option('--b2', type=float, default=None, help='force bmin',)
 @click.option('--l2', type=float, default=None, help='force bmin',)
 @click.option('--s2', type=float, default=None, help='force bmin',)
+@click.option('-f', '--filterid', default=1, help='Filter ID')
+@click.option('-c', '--comp', default="ZZ", help='Components (ZZ, ZR,...)')
 @click.option('-s', '--show', help='Show interactively?',
               default=True, type=bool)
 @click.command()
-def answt(per, a1, b1, l1, s1, a2, b2, l2, s2, show):
+def answt(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
     from .ANSWT import main
-    main(per, a1, b1, l1, s1, a2, b2, l2, s2, show)
+    main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show)
 
 
 @click.command()
@@ -142,4 +144,5 @@ def getitem(obj, item, default):
 def register_job_types():
     jobtypes = []
     jobtypes.append( {"name":"TOMO_SAC", "after":"refstack"} )
+    jobtypes.append({"name": "TOMO_FTAN", "after": "prepare_tomo"})
     return jobtypes

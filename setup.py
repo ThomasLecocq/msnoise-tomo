@@ -115,6 +115,17 @@ def configuration(parent_package="", top_path=None):
 
     # Smoothing Matrix
     path = "src"
+    files = [os.path.join(path, "mk_MatPaths.c"),]
+    # compiler specific options
+    kwargs = {}
+    if IS_MSVC:
+        # get export symbols
+        kwargs['export_symbols'] = export_symbols(path, 'mk_MatPaths.def')
+    config.add_extension(_get_lib_name("mk_MatPaths", add_extension_suffix=False),
+                                       files, **kwargs)
+
+    # Smoothing Matrix
+    path = "src"
     files = [os.path.join(path, "mkMatSmoothing.c"),]
     # compiler specific options
     kwargs = {}

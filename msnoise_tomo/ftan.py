@@ -27,9 +27,11 @@ def main(pair, bmin, bmax, show):
 
     nfreq = int(get_config(db, "ftan_nfreq", plugin="Tomo"))
     ampmin = float(get_config(db, "ftan_ampmin", plugin="Tomo"))
-
+    params = get_params(db)
     db = connect()
-
+    comps = params.components_to_compute
+    filters = get_filters(db)
+    
     while is_next_job(db, jobtype='TOMO_FTAN') or pair:
         SACfilelist = []
         if not pair:
@@ -42,8 +44,14 @@ def main(pair, bmin, bmax, show):
                 # SACfilelist.append(fn)
                 # fn = os.path.join("TOMO_SAC", "%s_%s_REAL.SAC"%(netsta2.replace('.','_'), netsta1.replace('.','_')))
                 # SACfilelist.append(fn)
-                fn = os.path.join("TOMO_SAC", "%s_%s_MEAN.sac"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
-                SACfilelist.append(fn)
+                for filter in filters:
+                    for comp in comps:
+                        fn = os.path.join("TOMO_SAC", "%02i"%filter.ref, comp, "%s_%s_MEAN.sac"%(netsta1.replace('.','_'), netsta2.replace('.','_')))
+                        print(fn)
+                        if os.path.isfile(fn):
+                            SACfilelist.append(fn)
+                        else:
+                            print("no file named", fn)
         else:
             for pi in pair:
                 netsta1, netsta2 = pi.split('_')
@@ -141,7 +149,10 @@ def main(pair, bmin, bmax, show):
             print(dcii)
             df = pd.Series(dcii, index=PER, name="disp")
             df.plot()
-            fn = os.path.join("TOMO_DISP", basename+".csv")
+            fn = filename.replace("TOMO_SAC", "TOMO_DISP").replace(".sac", ".csv").replace(".SAC", ".csv")
+            if not os.path.isdir(os.path.split(fn)[0]):
+                os.makedirs(os.path.split(fn)[0])
+            # fn = os.path.join("TOMO_DISP", basename+".csv")
             df.to_csv(fn, header=[basename,])
             # LA
             maxp[i]=np.max(GVdisp[i]["PERIOD"])

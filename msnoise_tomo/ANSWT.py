@@ -11,7 +11,7 @@ import scipy.sparse.linalg
 from matplotlib import cm
 from msnoise.api import connect, get_config
 from scipy import ndimage
-from skimage import measure
+# from skimage import measure
 
 from .fitellipse import fitellipse
 
@@ -44,26 +44,30 @@ def loadH(G,lmd):
     return H
 
 def loadG(nX, nY, file, gridfile,ANSWT_toolbox_path):
-    if sys.platform[:3] == "win":
-        command = os.path.join(ANSWT_toolbox_path, 'mk_MatPaths.exe') + " %s %s" %(file, gridfile)
-    else:
-        command = os.path.join(ANSWT_toolbox_path, 'mk_MatPaths') + " %s %s" %(file, gridfile)
-    print(command)
-    os.system(command)
+    # if sys.platform[:3] == "win":
+    #     command = os.path.join(ANSWT_toolbox_path, 'mk_MatPaths.exe') + " %s %s" %(file, gridfile)
+    # else:
+    #     command = os.path.join(ANSWT_toolbox_path, 'mk_MatPaths') + " %s %s" %(file, gridfile)
+    # print(command)
+    # os.system(command)
+    from .intersect import mkpath
+    
     print('C code done')
     DATA = np.fromfile('matG.bin', dtype=np.float)
-    G = DATA.reshape(-1,nX*nY)
+    G = DATA.reshape(-1,int(nX*nY))
     return G
 
-def loadF(nX, nY, smooth,gridfile,ANSWT_toolbox_path):
-    if sys.platform[:3] == "win":
-        command = os.path.join(ANSWT_toolbox_path, 'mk_MatSmoothing.exe') + " %f %s " % (smooth, gridfile)
-    else:
-        command = os.path.join(ANSWT_toolbox_path, 'mk_MatSmoothing') + " %f %s " % (smooth, gridfile)
-    print(command)
-    os.system(command)
+def loadF(nX, nY, smoothfactor,gridfile,ANSWT_toolbox_path):
+    # if sys.platform[:3] == "win":
+    #     command = os.path.join(ANSWT_toolbox_path, 'mk_MatSmoothing.exe') + " %f %s " % (smooth, gridfile)
+    # else:
+    #     command = os.path.join(ANSWT_toolbox_path, 'mk_MatSmoothing') + " %f %s " % (smooth, gridfile)
+    # print(command)
+    # os.system(command)
+    from .lib.libmkMatSmoothing import smooth
+    smooth("%.7f"%smoothfactor, gridfile)
     F = np.fromfile('matF.bin', dtype=np.float32)
-    F = F.reshape(nX*nY,nX*nY)
+    F = F.reshape(int(nX*nY),int(nX*nY))
     return F
 
 def LoadSmoothParam(paramFile):
@@ -85,21 +89,25 @@ def initModel(gridfile):
     nX=np.floor(np.floor((grille[0,1]-grille[0,0])/grille[2,0]))+1
     nY=np.floor(np.floor((grille[1,1]-grille[1,0])/grille[2,1]))+1
     [X0,Y0]=np.meshgrid(grille[0,0]+np.arange(0,nX)*grille[2,0], grille[1,0]+np.arange(0,nY)*grille[2,1])
-    pasgrille=[grille[2,0], grille[2,1]]
-    return [X0, Y0, nX,nY,pasgrille]
+    dx,dy=[grille[2,0], grille[2,1]]
+    return [X0, Y0, nX,nY, dx, dy]
 
 def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     path_tb=os.path.join(os.path.split(os.path.realpath(__file__))[0],'lib')
     print(path_tb)
-    X,Y,nX,nY,bin = initModel(gridfile)
-    pasgrille = np.mean(bin)
+    X,Y,nX,nY, dx, dy = initModel(gridfile)
+    nX = int(nX)
+    nY = int(nY)
+    print(X)
+    print("nX and Ny from gridfile & initModel", nX, nY)
+
 
     # Data loading
 
 
     #STA NET LAT LON EL
     STALOC = np.loadtxt(stacoordfile, dtype=str)
-
+    print(STALOC)
     # STA1 STA2 PER VG eVG DIST
     DC = np.loadtxt(DCfile, dtype=str)
     # Data formatting
@@ -125,7 +133,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     F = loadF(nX,nY, Lcorr1,gridfile,path_tb) # Smoothing matrix
     F = scipy.sparse.lil_matrix(F)
     F1 = scipy.sparse.lil_matrix(F.T*F)
-    print('F-Lcorr loaded')
+    print('F-Lcorr loaded, shape=', F1.shape)
 
     # Coordonnees des couples utilises et construction des rais
     x = np.array(STALOC[:,3], dtype=float)
@@ -156,9 +164,58 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     t_obs = dist/Vg1
     nData1=lpath.shape[0]
     print('There are %i data to inverse.' % nData1)
+    
+    # OLD WAY:
+    from .lib.libmk_MatPaths import path
+    path("lpath.txt", gridfile)
 
-    GGG=loadG(nX,nY,'lpath.txt',gridfile,path_tb)
+    DATA = np.fromfile('matG.bin', dtype=np.float)
+    G = DATA.reshape(-1, int(nX * nY))
+    print("G.shape from old path code", G.shape)
+    
+    # GGG=loadG(nX,nY,'lpath.txt',gridfile,path_tb)
+    
+    
+    
+    import pandas as pd
+    # NEW WAY
+    stations = pd.read_csv(stacoordfile, delimiter=' ', header=None)
+    stations = np.array([row for id, row in stations.iterrows()])
 
+    xmin = stations[:, 3].min() - dx * 2 - 0.005
+    xmax = stations[:, 3].max() + dx * 2 - 0.005
+
+    ymin = stations[:, 2].min() - dy * 2 - 0.005
+    ymax = stations[:, 2].max() + dy * 2 + 0.005  
+
+    from .intersect import mkpath
+    # defined above
+    # dx = 1.0
+    # dy = 0.75
+    print(xmin, xmax, dx, ymin, ymax, dy)
+    # nX = int(np.floor(np.floor((xmax - xmin) / dx)) + 1)
+    # nY = int(np.floor(np.floor((ymax - ymin) / dy)) + 1)
+
+    GGG = mkpath(xmin, xmax, dx, ymin, ymax, dy, stations, False)
+    GGG = GGG[sv]
+    print(GGG.shape)
+    
+    # tmp plot paths to be sure it's OK
+    G2 = GGG.sum(axis=0)
+    G2 = G2.reshape(nX, nY)
+    
+    plt.figure()
+    plt.imshow(G2.T, extent=(xmin, xmax + dx, ymin, ymax + dy / 2.),
+               origin='lower', aspect='auto', interpolation="none",
+               cmap='inferno')
+    cb = plt.colorbar(orientation='vertical', shrink=0.7)
+    cb.set_label('Path length in cell')
+
+    plt.xlim(xmin, xmax + dx)
+    plt.ylim(ymin, ymax + dy / 2.)
+    plt.savefig("paths.png")
+    
+    # END NEW WAY
     izero = (np.sum(GGG, axis=1) == 0)
     t_obs[izero] = 0
     GGG=scipy.sparse.lil_matrix(GGG)
@@ -170,7 +227,8 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     print("V0",V0)
     # m0 = model initial, premiere inversion lissee pour eliminer les outliers
     m0 = V0*np.ones((nX,nY))
-
+    print("GD.shape", GG.shape)
+    print("m0.shape", m0.shape)
     T0 = GG*(1./m0.flatten())
     Dt = t_obs-T0
     G = 1./V0*GG
@@ -183,6 +241,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     print('H loaded')
     H1 = H.T*H
     invCd = scipy.sparse.dia_matrix(np.diag(np.ones(len(Dt))))
+    print("h1 & F shape", H1.shape, F.shape)
     Q=(beta1*(H1)+alpha1*scipy.sparse.linalg.inv(F.astype(float)))
     # print 'Q', Q
     print('Q computed')
@@ -242,9 +301,10 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     F = scipy.sparse.lil_matrix(F)
     F1 = scipy.sparse.lil_matrix(F.T*F)
     print('F-Lcorr loaded')
-    plt.figure()
-    plt.imshow(F.toarray(), vmin=0, vmax=1)
-    plt.colorbar()
+    # plt.figure()
+    # plt.imshow(F.toarray(), vmin=0, vmax=1)
+    # plt.colorbar()
+    # plt.savefig("F.png")
     # plt.show()
     Q=(beta2*(H1)+alpha2*scipy.sparse.linalg.inv(F.astype(float)))
     G1 = np.multiply(G.T, invCd) * G
@@ -267,7 +327,21 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     m_vel2 = m02.flatten()/(m_inv2+1)
     t_calc2=GG*(1./m_vel2)
     M_vel= m_vel2.reshape(nY, nX) #  final model
-    densitypath = np.sum(np.abs(np.sign(G.toarray())), axis=0).T.reshape(nY, nX) # number of ray per cell
+    
+    # plt.figure()
+    # plt.imshow(M_vel)
+    # plt.colorbar()
+    # plt.savefig('mvel.png')
+    # 
+    # plt.figure()
+    # plt.imshow(m_vel2.reshape(nX, nY))
+    # plt.colorbar()
+    # plt.savefig('mvel2.png')
+    # 
+    print("G.toarray()", G.toarray().shape)
+    print("G.toarray().sum(axis=0)", G.toarray().sum(axis=0).shape)
+    print("G.toarray().sum(axis=1)", G.toarray().sum(axis=1).shape)
+    densitypath = np.sum(np.abs(np.sign(G.toarray())), axis=0).reshape(nY, nX) # number of ray per cell
     print(densitypath.shape)
     RMS_l2 = np.var((t_calc2-t_obs[s]))
     RMS0_l = np.var(Dt)
@@ -280,13 +354,13 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
     doplot = 1
     if doplot:
         # Figures
-        lonlim=[np.amin(X)-bin[0], np.amax(X)+bin[0]]
-        latlim=[np.amin(Y)-bin[1], np.amax(Y)+bin[1]]
+        lonlim=[np.amin(X)-dx, np.amax(X)+dx]
+        latlim=[np.amin(Y)-dy, np.amax(Y)+dy]
         span = 1 # Size of the averaging window
         window = np.ones((span,span))/(span*span)
         Dsity = ndimage.convolve(densitypath, window, mode='constant')
         # densitypath(Dsity==0)=NaN;
-        seuil = 0
+        seuil = -1
         id = np.where(Dsity <= seuil)
         print(id)
         M_vel[id] *= np.nan
@@ -296,10 +370,10 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
 
         # Fig Path density
         plt.figure()
-        plt.contourf(X+bin[0]/2, Y+bin[1]/2, densitypath, 30, origin='lower', cmap='hot_r')
+        plt.contourf(X+dx/2, Y+dy/2, densitypath, 30, origin='lower', cmap='hot_r')
         cb = plt.colorbar()
         cb.set_label("Path density (#ray/pixel)")
-        plt.contour(X+bin[0]/2, Y+bin[1]/2, Dsity, [1,1], colors='k')
+        plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='k')
         plt.scatter(x,y,marker='^',c='k')
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
@@ -314,11 +388,11 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         vmin = np.mean(Vgmesur)-1.5*np.std(Vgmesur)
         vmax = np.mean(Vgmesur)+1.5*np.std(Vgmesur)
 
-        cf = plt.contourf(X+bin[0]/2, Y+bin[1]/2, M, 30, origin='lower',
+        cf = plt.contourf(X+dx/2, Y+dy/2, M, 30, origin='lower',
                      cmap='jet_r')
 
         plt.scatter(x,y, marker='^',c='k')
-        plt.contour(X+bin[0]/2, Y+bin[1]/2, Dsity, [1,1], colors='w')
+        plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='w')
         plt.xlim(lonlim[0], lonlim[1])
         plt.ylim(latlim[0], latlim[1])
         plt.axis('off')
@@ -327,10 +401,10 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         plt.close(fig)
 
         plt.figure()
-        cf = plt.contourf(X+bin[0]/2, Y+bin[1]/2, M, 30, origin='lower',
+        cf = plt.contourf(X+dx/2, Y+dy/2, M, 30, origin='lower',
                      cmap='jet_r')
         plt.scatter(x,y, marker='^',c='k')
-        plt.contour(X+bin[0]/2, Y+bin[1]/2, Dsity, [1,1], colors='w')
+        plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='w')
         cb = plt.colorbar(cf)
         cb.set_label("Group velocity (km/s)")
         plt.ylabel('Latitude')
@@ -366,7 +440,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
             plt.plot([a,b],[c,d], color=C)
         m._A = []
         plt.colorbar(m)
-        plt.contour(X+bin[0]/2, Y+bin[1]/2, Dsity, [1,1], colors='k')
+        plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='k')
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.title("Period = %.1f s, Vmean= %.3f km/s" %
@@ -441,12 +515,12 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         data2=111.11*np.hypot(X0res-bla1.flatten().T, Y0res-bla2.flatten().T)
         data2 = data2.reshape(M_vel.shape)
         #data2[id]*=np.nan
-        plt.contourf(X+bin[0]/2, Y+bin[1]/2, data2, 30, origin='lower',
+        plt.contourf(X+dx/2, Y+dy/2, data2, 30, origin='lower',
                      cmap='jet_r')
         plt.show()
 
 
-def main(per, a1, b1, l1, s1, a2, b2, l2, s2, show):
+def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
     # Smoothing and damping parameters
     db = connect()
     alpha1 = a1 if a1 else float(get_config(db, "alpha1", plugin="Tomo"))
@@ -466,14 +540,15 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, show):
         periods = [float(per),]
 
     # ANSWT inputs
-    gridfile='TOMO_FILES/GLISNGrid.dat'
-    stacoordfile='TOMO_FILES/GLISN_STACoord.dat'
-
+    
+    gridfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISNGrid.dat")
+    stacoordfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISN_STACoord.dat")
+    
     for per in periods:
-        DCfile='TOMO_FILES/TestGroupVel_%.1fsGLISN.dat'%float(per)
+        DCfile=os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.1fsGLISN.dat"%float(per))
         PERIOD=per
 
-        paramfile = 'TOMO_FILES/ParamFile.txt'
+        paramfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp,'ParamFile.txt')
         fid = open(paramfile,'w');
         fid.write('%% alpha1 \t beta1 \t lambda1 \t Lcorr1 \t alpha2 \t beta2 \t lambda2 \t Lcorr2\n')
         fid.write('%f %f %f %f %f %f %f %f\n' %(alpha1,beta1,lambda1,sigma1,alpha2,beta2,lambda2,sigma2))
