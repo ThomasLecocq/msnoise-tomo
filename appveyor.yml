@@ -57,7 +57,7 @@ test_script:
   - ps: cd test
   - echo %CD%
   - msnoise test
-  - msnoise config --set plugins=msnoise_tomo
+  - msnoise config set plugins=msnoise_tomo
   - msnoise p tomo install
   - msnoise p tomo info
 

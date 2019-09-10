@@ -22,13 +22,11 @@ and
 
 **Lecocq, T., Mordret, A. (in prep)**, MSNoise-TOMO.
 
-This documentation is also available in PDF format on the MSNoise Website
-(PDF_).
 
 Installation / Adding the plugin to a project
 =============================================
 
-#. Install the package and requirements (msnoise)
+#. Install the package and requirements (see MSNoise_) 
 #. In the current project folder, add msnoise_tomo to the plugins:
    e.g. ``msnoise config set plugins=msnoise_tomo``
 #. run ``msnoise p tomo install``
@@ -80,20 +78,8 @@ Development & Miscellaneous
 
 Release Notes
 =============
-.. toctree::
-    :maxdepth: 1
 
-    releasenotes/msnoise-1.5
-    releasenotes/msnoise-1.4
-    releasenotes/msnoise-1.3.1
-    releasenotes/msnoise-1.3
-    releasenotes/msnoise-1.2.5
-    releasenotes/msnoise-1.2.4
-    releasenotes/msnoise-1.2.3
-    releasenotes/msnoise-1.2.2
-    releasenotes/msnoise-1.2.1
-    releasenotes/msnoise-1.2
-    releasenotes/msnoise-1.0
 
 
 .. _PDF: http://msnoise.org/doc/MSNoise.pdf
+.. _MSNoise: http://msnoise.org/doc/installation.html

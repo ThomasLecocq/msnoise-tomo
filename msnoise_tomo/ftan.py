@@ -144,10 +144,11 @@ def main(pair, bmin, bmax, show):
             # ICI
             Periods = np.arange(0, np.ceil(np.max(GVdisp[i]["PERIOD"]))+1.1, 0.1)
             dci=np.interp(Periods, GVdisp[i]["PERIOD"], GVdisp[i]["GroupVel"], left=np.nan, right=np.nan)
-            dcii = np.interp(PER, Periods, dci, left=np.nan, right=np.nan)
+            # dcii = np.interp(PER, Periods, dci, left=np.nan, right=np.nan)
+            dcii = dci
             print(PER)
             print(dcii)
-            df = pd.Series(dcii, index=PER, name="disp")
+            df = pd.Series(dcii, index=Periods, name="disp")
             df.plot()
             fn = filename.replace("TOMO_SAC", "TOMO_DISP").replace(".sac", ".csv").replace(".SAC", ".csv")
             if not os.path.isdir(os.path.split(fn)[0]):

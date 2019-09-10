@@ -89,9 +89,11 @@ def prepare_1d():
 
 
 @click.command()
-def plot():
+@click.option('-f', '--filterid', default=1, help='Filter ID')
+@click.option('-c', '--comp', default="ZZ", help='Components (ZZ, ZR,...)')
+def plot(filterid, comp):
     from .plotdisp import main
-    main()
+    main(filterid, comp)
 
 @click.command()
 def plot3d():
