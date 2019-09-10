@@ -20,7 +20,7 @@ libfta.main.restype = ctypes.c_int
 
 
 def ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, dist, disp=0):
+         diagramtype, nfreq, ampmin, dist, disp=0, tinit=0, vginit=0):
     args = ["placeholder",
             filename,
             'fmin=%f' % float(fmin),
@@ -35,6 +35,9 @@ def ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
             'nfreq=%i' % int(nfreq),
             'ampMin=%f' % float(ampmin)
             ]
+    if tinit != 0 and vginit != 0:
+        args.append("tinit= %f" % float(tinit))
+        args.append("vginit= %f" % float(vginit))
 
     argc = len(args)
     argv = (LP_c_char * (argc + 1))()

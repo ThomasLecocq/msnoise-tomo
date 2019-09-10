@@ -69,7 +69,7 @@ def main():
         data.to_csv(filename)
         
     
-    def process(e=None):
+    def process(e=None, xdata=0, ydata=0):
         filename = cb_val.get()
         NET1, STA1, NET2, STA2, crap = os.path.split(filename)[1].split('_')
 
@@ -98,7 +98,9 @@ def main():
                                                diagramtype,
                                                nfreq,
                                                _ampmin.get(),
-                                               dist)
+                                               dist,
+                                               xdata,
+                                               ydata)
         basename = "%s.%s_%s.%s_%s" % (NET1, STA1, NET2, STA2, crap)
         basename = basename.replace(".SAC", "")
         for _ in ["write_amp.txt",
@@ -290,6 +292,7 @@ def main():
     def onclick(event):
         print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
               (event.button, event.x, event.y, event.xdata, event.ydata))
+        process(event, xdata=event.xdata, ydata=event.ydata)
 
     cid = f.canvas.mpl_connect('button_press_event', onclick)
 

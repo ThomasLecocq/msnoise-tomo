@@ -6,36 +6,36 @@ import numpy as np
 from .lib.libvg_fta import ftan
 
 def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, dist):
+                      diagramtype, nfreq, ampmin, dist, pinit, vinit):
     # if sys.platform[:3] == "win":
     #     ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan.exe")
     # else:
     #     ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan")
-
-    command = [ftan," ", filename, ' fmin=', fmin, ' fmax=', fmax,
-        ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin ,' bmax=', bmax,
-        ' disp=none out=mat diag=', diagramtype, ' nfreq=', nfreq, ' ampMin=', ampmin]
     
-    ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-         diagramtype, nfreq, ampmin, dist, disp="none")
-    time.sleep(0.1)
-    com = "".join([str(a) for a in command])
-    print(com)
-    # os.system(com)
-
-    V = np.loadtxt('write_TV.txt')
-    P = np.loadtxt('write_FP.txt')
-    amp=np.loadtxt('write_amp.txt')
-    amp=amp.T
-
-    index = np.unravel_index(np.argmax(amp), amp.shape)
-    if len(index) == 2:
-        iv, ip = index
-    else:
-        iv, ip = index[0]
-
-    vinit = V[iv]
-    pinit = P[ip]
+    # command = [ftan," ", filename, ' fmin=', fmin, ' fmax=', fmax,
+    #     ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin ,' bmax=', bmax,
+    #     ' disp=none out=mat diag=', diagramtype, ' nfreq=', nfreq, ' ampMin=', ampmin]
+    if pinit == 0 and vinit == 0:
+        ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+             diagramtype, nfreq, ampmin, dist, disp="none")
+        time.sleep(0.1)
+        # com = "".join([str(a) for a in command])
+        # print(com)
+        # os.system(com)
+    
+        V = np.loadtxt('write_TV.txt')
+        P = np.loadtxt('write_FP.txt')
+        amp=np.loadtxt('write_amp.txt')
+        amp=amp.T
+    
+        index = np.unravel_index(np.argmax(amp), amp.shape)
+        if len(index) == 2:
+            iv, ip = index
+        else:
+            iv, ip = index[0]
+    
+        vinit = V[iv]
+        pinit = P[ip]
 
 
     if diagramtype == 'PV':
@@ -54,18 +54,18 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
         finit = 1. / pinit
         vginit = dist/vinit
 
-    command = [ftan," ", filename, ' fmin=', fmin, ' fmax=', fmax,
-        ' vgMin=', vgmin, ' vgMax=', vgmax, ' finit=', finit, ' vginit=',
-               vginit, ' bmin=', bmin ,' bmax=', bmax,
-        ' disp=cont out=mat diag=', diagramtype, ' nfreq=', nfreq,
-               ' ampMin=', ampmin]
-
-    com = "".join([str(a) for a in command])
-    print(com)
+    # command = [ftan," ", filename, ' fmin=', fmin, ' fmax=', fmax,
+    #     ' vgMin=', vgmin, ' vgMax=', vgmax, ' finit=', finit, ' vginit=',
+    #            vginit, ' bmin=', bmin ,' bmax=', bmax,
+    #     ' disp=cont out=mat diag=', diagramtype, ' nfreq=', nfreq,
+    #            ' ampMin=', ampmin]
+    # 
+    # com = "".join([str(a) for a in command])
+    # print(com)
     # os.system(com)
 
     ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-         diagramtype, nfreq, ampmin, dist, disp="cont")
+         diagramtype, nfreq, ampmin, dist, disp="cont", tinit=pinit, vginit=vinit)
     time.sleep(0.1)
     D = np.loadtxt('write_disp.txt')
     isort = np.argsort(D[:,0])
@@ -73,19 +73,19 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
     per = D[:,0]
     disper = D[:,1]
 
-    command = [ftan, " ", filename, ' fmin=', fmin, ' fmax=', fmax,
-               ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin, ' bmax=',
-               bmax,
-               ' disp=all out=mat diag=', diagramtype, ' nfreq=', nfreq,
-               ' ampMin=', ampmin]
-
-    com = "".join([str(a) for a in command])
-    print(com)
+    # command = [ftan, " ", filename, ' fmin=', fmin, ' fmax=', fmax,
+    #            ' vgMin=', vgmin, ' vgMax=', vgmax, ' bmin=', bmin, ' bmax=',
+    #            bmax,
+    #            ' disp=all out=mat diag=', diagramtype, ' nfreq=', nfreq,
+    #            ' ampMin=', ampmin]
+    # 
+    # com = "".join([str(a) for a in command])
+    # print(com)
     # os.system(com)
     
-    ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-         diagramtype, nfreq, ampmin, dist, disp="cont")
-    time.sleep(0.1)
+    # ftan(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
+    #      diagramtype, nfreq, ampmin, dist, disp="cont", tinit=tinit, vginit=vginit)
+    # time.sleep(0.1)
     
     seeds = np.loadtxt('write_disp.txt')
     isort = np.argsort(seeds[:, 0])
