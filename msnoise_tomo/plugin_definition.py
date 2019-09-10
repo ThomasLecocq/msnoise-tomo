@@ -1,5 +1,10 @@
 import click
+from flask_admin import expose
 from flask_admin.contrib.sqla import ModelView
+from wtforms.fields import StringField, SelectField
+import markdown
+from flask import Flask, redirect, request, render_template
+from flask import Markup
 
 from .tomo_table_def import TomoConfig
 
@@ -114,9 +119,11 @@ tomo.add_command(prepare_1d)
 tomo.add_command(plot3d)
 
 
+from .default import default
 ### WEB INTERFACE PLUGIN DEFINITION
 class TomoConfigView(ModelView):
     # Disable model creation
+    edit_template = 'admin/model/edit-config.html'
     view_title = "MSNoise TOMO Configuration"
     name = "Configuration"
 
@@ -126,13 +133,27 @@ class TomoConfigView(ModelView):
     page_size = 50
     # Override displayed fields
     column_list = ('name', 'value')
+    # wont work because sigma1 is the content of the value, not the name of the
+    # field itself!!
+    # form_overrides = {"sigma1": SelectField}
 
     def __init__(self, session, **kwargs):
         # You can pass name and other parameters if you want to
         super(TomoConfigView, self).__init__(TomoConfig, session,
                                              endpoint="tomoconfig",
                                              name="Config",
-                                             category="Tomo", **kwargs)
+                                             category="Tomo",
+                                             **kwargs)
+    
+    @expose('/edit/', methods=['GET', 'POST'])
+    def edit_view(self):
+        id = request.args.get('id')
+        helpstring = default[id][0]
+        helpstring = Markup(markdown.markdown(helpstring))
+        self._template_args['helpstring'] = helpstring
+        self._template_args['helpstringdefault'] = default[id][1]
+        return super(TomoConfigView, self).edit_view()
+
 
 def getitem(obj, item, default):
     if item not in obj:

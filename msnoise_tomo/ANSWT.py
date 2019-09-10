@@ -93,7 +93,7 @@ def initModel(gridfile):
     dx,dy=[grille[2,0], grille[2,1]]
     return [X0, Y0, nX,nY, dx, dy]
 
-def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
+def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
     path_tb=os.path.join(os.path.split(os.path.realpath(__file__))[0],'lib')
     print(path_tb)
     X,Y,nX,nY, dx, dy = initModel(gridfile)
@@ -380,7 +380,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
 
         # Fig Path density
         plt.figure()
-        plt.contourf(X+dx/2, Y+dy/2, densitypath, 30, origin='lower', cmap='hot_r')
+        plt.contourf(X+dx/2, Y+dy/2, densitypath, 30, origin='lower', cmap=d_cmap)
         cb = plt.colorbar()
         cb.set_label("Path density (#ray/pixel)")
         plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='k')
@@ -399,7 +399,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         vmax = np.mean(Vgmesur)+1.5*np.std(Vgmesur)
 
         cf = plt.contourf(X+dx/2, Y+dy/2, M, 30, origin='lower',
-                     cmap='jet_r')
+                     cmap=v_cmap)
 
         plt.scatter(x,y, marker='^',c='k')
         plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='w')
@@ -412,7 +412,7 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
 
         plt.figure()
         cf = plt.contourf(X+dx/2, Y+dy/2, M, 30, origin='lower',
-                     cmap='jet_r')
+                     cmap=v_cmap)
         plt.scatter(x,y, marker='^',c='k')
         plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='w')
         cb = plt.colorbar(cf)
@@ -443,8 +443,8 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show):
         plt.scatter(x, y, marker='^',c='k')
         v = Vgmesur.T
         norm = mpl.colors.Normalize(vmin=np.min(v), vmax=np.max(v))
-        cmap = cm.jet_r
-        m = cm.ScalarMappable(norm=norm, cmap=cmap)
+        # cmap = cm.jet_r
+        m = cm.ScalarMappable(norm=norm, cmap=v_cmap)
         colors = m.to_rgba(v)
         for (a,b,c,d,C) in zip(x11, x21, y11, y21, colors):
             plt.plot([a,b],[c,d], color=C)
@@ -542,7 +542,11 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
     beta2 = b2 if b2 else float(get_config(db, "beta2", plugin="Tomo"))
     lambda2 = l2 if l2 else float(get_config(db, "lambda2", plugin="Tomo"))
     sigma2 = s2 if s2 else float(get_config(db, "sigma2", plugin="Tomo"))
-
+    
+    v_cmap = get_config(db, "v_cmap", plugin="Tomo")
+    d_cmap = get_config(db, "d_cmap", plugin="Tomo")
+    
+    
     if per is None:
         PER= get_config(db, "ftan_periods", plugin="Tomo")
         periods = np.array([float(pi) for pi in PER.split(',')])
@@ -564,7 +568,7 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
         fid.write('%f %f %f %f %f %f %f %f\n' %(alpha1,beta1,lambda1,sigma1,alpha2,beta2,lambda2,sigma2))
         fid.close()
         try:
-            ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show)
+            ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap)
         except:
             traceback.print_exc()
             print("!"*80)

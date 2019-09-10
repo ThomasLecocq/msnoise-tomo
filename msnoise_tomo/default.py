@@ -25,6 +25,9 @@ default['beta2'] = ["beta2",'50']
 default['lambda2'] = ["lambda2",'0.01']
 default['sigma2'] = ["sigma2",'3']
 
+default['v_cmap'] = ["Velocity Colormap, see <a href='https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html'>Matplotlib Colormaps</a> for choosing one", 'viridis']
+default['d_cmap'] = ["Density Colormap, see <a href='https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html'>Matplotlib Colormaps</a> for choosing one", 'inferno']
+
 
 
 
