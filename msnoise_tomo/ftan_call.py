@@ -6,7 +6,7 @@ import numpy as np
 from .lib.libvg_fta import ftan
 
 def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
-                      diagramtype, nfreq, ampmin, dist, pinit, vinit):
+                      diagramtype, nfreq, ampmin, dist, pinit=0, vinit=0):
     # if sys.platform[:3] == "win":
     #     ftan = os.path.join(os.path.split(os.path.realpath(__file__))[0],"lib", r"ftan.exe")
     # else:
