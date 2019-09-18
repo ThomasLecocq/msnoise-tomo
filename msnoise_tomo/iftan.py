@@ -59,7 +59,7 @@ def main():
         cb['values'] = files
         cb_val.set(files[0])
     
-    def save():
+    def save(event=None):
         global data
         print(data.head())
         filename = cb_val.get()
@@ -303,6 +303,7 @@ def main():
     root.bind('<KP_Enter>', process)
     root.bind('<Control-Key-Left>', previous_file)
     root.bind('<Control-Key-Right>', next_file)
+    root.bind('<Control-Key-s>', save)
     icon = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'img',
                         'msnoise.gif')
     img = PhotoImage(file=icon)
