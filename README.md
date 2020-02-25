@@ -8,6 +8,10 @@ MSNoise-Tomo is a plugin to the MSNoise framework, allowing to branch from the [
 
 MSNoise-Tomo is developed by Thomas Lecocq (Royal Observatory of Belgium, ROB) based on original codes from A. Mordret and M. Landès (IPGP, 2013).
 
+References
+----------
+* Mordret, A., Landès, M., Shapiro, N.M., Singh, S.C., Roux, P., Barkved, O.I., 2013. Near-surface study at the Valhall oil field from ambient noise surface wave tomography. Geophys. J. Int. 193, 1627–1643. https://doi.org/10.1093/gji/ggt061
+* Barmin, M.P., Ritzwoller, M.H., Levshin, A.L., 2001. A Fast and Reliable Method for Surface Wave Tomography. Pure and Applied Geophysics 158, 1351–1375. https://doi.org/10.1007/PL00001225
 
 Documentation
 -------------
