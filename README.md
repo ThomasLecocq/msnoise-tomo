@@ -21,7 +21,10 @@ The documentation is available at http://msnoise.org/plugins/msnoise-tomo/doc/
 Installation
 ------------
 
-Please first follow the instructions in the MSNoise documentation: http://msnoise.org/doc/installation.html.
+Create a new environment using conda:
+
+* conda create -n tomo -c conda-forge python=3.7 obspy=1.1.1 msnoise shapely pyproj
+* conda activate tomo
 
 Then, the code can be installed from scratch using this repository, or using precompiled python wheels:
 
