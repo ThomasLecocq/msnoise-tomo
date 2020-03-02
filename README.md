@@ -33,3 +33,8 @@ Then, the code can be installed from scratch using this repository, or using pre
 * MacOS:http://msnoise.org/plugins/msnoise-tomo/msnoise_tomo-0.1b0-cp37-cp37m-macosx_10_9_x86_64.whl
 
 Remember, always consider the current GitHub *master* as not stable!
+
+Commercial Usage
+----------------
+If you plan to use MSNoise-TOMO for commercial purposes, please contact Thomas
+Lecocq directly.

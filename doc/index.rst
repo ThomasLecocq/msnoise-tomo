@@ -23,6 +23,12 @@ and
 **Lecocq, T., Mordret, A. (in prep)**, MSNoise-TOMO.
 
 
+Commercial Usage
+================
+
+If you plan to use MSNoise-TOMO for commercial purposes, please contact Thomas
+Lecocq directly.
+
 Installation / Adding the plugin to a project
 =============================================
 
