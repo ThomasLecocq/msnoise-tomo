@@ -15,6 +15,12 @@ def main():
         sta1 = "%s.%s" % (station1.net, station1.sta)
         sta2 = "%s.%s" % (station2.net, station2.sta)
         pair = "%s:%s" % (sta1, sta2)
+        dist = get_interstation_distance(station1, station2,
+                                         station1.coordinates)
+        if dist == 0:
+            logging.error("Interstation distance is 0.0 km, skipping this"
+                          "pair: %s" % pair)
+            continue
         if is_dtt_next_job(db, jobtype='TOMO_SAC', ref=pair):
             logging.info(
                 "We will export the one-sided CCFs for REF: %s" % pair)
@@ -39,7 +45,7 @@ def main():
                     st1.stats.sac.evlo = station2.X
                     st1.stats.sac.scale = 1
                     st1.stats.sac.lcalda = 1
-                    st1.stats.sac.dist = get_interstation_distance(station1, station2, station1.coordinates)
+                    st1.stats.sac.dist = dist
                     st1.stats.sac.npts = st1.stats.npts
                     st1.stats.sac.kevnm = sta1
                     st1.stats.sac.kstnm = sta2
