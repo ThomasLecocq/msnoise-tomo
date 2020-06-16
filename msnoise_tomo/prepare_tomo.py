@@ -60,7 +60,7 @@ def main():
                 print("*" * 100)
                 tmp = tmp.dropna()
                 print("*" * 100)
-                of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.1fsGLISN.dat"%per)
+                of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.3fs.dat"%per)
                 if not os.path.isdir(os.path.split(of)[0]):
                     os.makedirs(os.path.split(of)[0])
                 tmp.to_csv(of, index=False, header=False, sep=" ")
@@ -68,10 +68,10 @@ def main():
             for s in get_stations(db):
                 df.append(["%s.%s"%(s.net, s.sta), s.net, s.Y, s.X, 0])
             df = pd.DataFrame(df)
-            of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISN_STACoord.dat")
+            of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "STACoord.dat")
             df.to_csv(of, index=False, header=False, sep=" ")
         
-            of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISNGrid.dat")
+            of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "Grid.dat")
             f = open(of,'w')
             xstep = float(get_config(db, "xstep", plugin="Tomo"))
             ystep = float(get_config(db, "ystep", plugin="Tomo"))
