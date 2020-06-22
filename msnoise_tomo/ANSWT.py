@@ -388,11 +388,11 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.title("Density Paths")
-        plt.savefig("result_density_%.1fs.png"%PERIOD, dpi=300)
+        plt.savefig("result_density_%.3fs.png"%PERIOD, dpi=300)
 
         # Tomo result
 
-        np.savetxt('tomo_%.1fs.txt'%PERIOD, M)
+        np.savetxt('tomo_%.3fs.txt'%PERIOD, M)
 
         fig=plt.figure()
         vmin = np.mean(Vgmesur)-1.5*np.std(Vgmesur)
@@ -419,11 +419,11 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         cb.set_label("Group velocity (km/s)")
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
-        plt.title("Period = %.1f s, Vmean= %.3f km/s, VarRed= %.2f" %
+        plt.title("Period = %.3f s, Vmean= %.3f km/s, VarRed= %.2f" %
                   (PERIOD, V0, vared2))
-        plt.savefig("result_tomo_%.1fs.png"%PERIOD, dpi=300)
+        plt.savefig("result_tomo_%.3fs.png"%PERIOD, dpi=300)
 
-        with zipfile.ZipFile('tomo-result_%.1fs.kmz'%PERIOD, 'w') as z:
+        with zipfile.ZipFile('tomo-result_%.3fs.kmz'%PERIOD, 'w') as z:
             z.writestr('doc.kml', kml.format(
                 path='files/test.png',
                 lat_north=latlim[1],
@@ -453,9 +453,9 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='k')
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
-        plt.title("Period = %.1f s, Vmean= %.3f km/s" %
+        plt.title("Period = %.3f s, Vmean= %.3f km/s" %
                   (PERIOD, V0))
-        plt.savefig("result_paths_%.1fs.png"%PERIOD, dpi=300)
+        plt.savefig("result_paths_%.3fs.png"%PERIOD, dpi=300)
     if show:
         plt.show()
 
@@ -555,11 +555,11 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
 
     # ANSWT inputs
     
-    gridfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISNGrid.dat")
-    stacoordfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "GLISN_STACoord.dat")
+    gridfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "Grid.dat")
+    stacoordfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "STACoord.dat")
     
     for per in periods:
-        DCfile=os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.1fsGLISN.dat"%float(per))
+        DCfile=os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.3fs.dat"%float(per))
         PERIOD=per
 
         paramfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp,'ParamFile.txt')
