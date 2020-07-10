@@ -75,14 +75,14 @@ def main():
             f = open(of,'w')
             xstep = float(get_config(db, "xstep", plugin="Tomo"))
             ystep = float(get_config(db, "ystep", plugin="Tomo"))
-            minlon = df[3].min() - xstep*2 - 0.005
-            maxlon = df[3].max() + xstep*2 + 0.005
-            minlat = df[2].min() - ystep*2 - 0.005
-            maxlat = df[2].max() + ystep*2 + 0.005
+            minlon = df[3].min() - xstep*1.5 
+            maxlon = df[3].max() + xstep*1.5 
+            minlat = df[2].min() - ystep*1.5 
+            maxlat = df[2].max() + ystep*1.5 
             f.write("%f %f\n"%(minlon, maxlon))
             f.write("%f %f\n"%(minlat, maxlat))
             f.write("%f %f\n"%(xstep, ystep))
-            f.close()
+            f.close
 
 
 if __name__ == "__main__":

@@ -451,6 +451,8 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         m._A = []
         plt.colorbar(m)
         plt.contour(X+dx/2, Y+dy/2, Dsity, [1,], colors='k')
+        plt.xlim(lonlim[0], lonlim[1])
+        plt.ylim(latlim[0], latlim[1])
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
         plt.title("Period = %.3f s, Vmean= %.3f km/s" %
