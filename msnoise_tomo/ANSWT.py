@@ -387,12 +387,12 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         plt.scatter(x,y,marker='^',c='k')
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
-        plt.title("Density Paths")
-        plt.savefig("result_density_%.3fs.png"%PERIOD, dpi=300)
+        plt.title("Period = %.4f s Path Density" %PERIOD)
+        plt.savefig("result_density_%.4fs.png"%PERIOD, dpi=300)
 
         # Tomo result
 
-        np.savetxt('tomo_%.3fs.txt'%PERIOD, M)
+        np.savetxt('tomo_%.4fs.txt'%PERIOD, M)
 
         fig=plt.figure()
         vmin = np.mean(Vgmesur)-1.5*np.std(Vgmesur)
@@ -419,11 +419,11 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         cb.set_label("Group velocity (km/s)")
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
-        plt.title("Period = %.3f s, Vmean= %.3f km/s, VarRed= %.2f" %
+        plt.title("Period = %.4f s, Vmean= %.3f km/s, VarRed= %.2f" %
                   (PERIOD, V0, vared2))
-        plt.savefig("result_tomo_%.3fs.png"%PERIOD, dpi=300)
+        plt.savefig("result_tomo_%.4fs.png"%PERIOD, dpi=300)
 
-        with zipfile.ZipFile('tomo-result_%.3fs.kmz'%PERIOD, 'w') as z:
+        with zipfile.ZipFile('tomo-result_%.4fs.kmz'%PERIOD, 'w') as z:
             z.writestr('doc.kml', kml.format(
                 path='files/test.png',
                 lat_north=latlim[1],
@@ -455,9 +455,9 @@ def ANSWT(gridfile,stacoordfile,DCfile,paramfile,PERIOD, show, v_cmap, d_cmap):
         plt.ylim(latlim[0], latlim[1])
         plt.ylabel('Latitude')
         plt.xlabel('Longitude')
-        plt.title("Period = %.3f s, Vmean= %.3f km/s" %
+        plt.title("Period = %.4f s, Vmean= %.3f km/s" %
                   (PERIOD, V0))
-        plt.savefig("result_paths_%.3fs.png"%PERIOD, dpi=300)
+        plt.savefig("result_paths_%.4fs.png"%PERIOD, dpi=300)
     if show:
         plt.show()
 
