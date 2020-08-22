@@ -16,7 +16,8 @@ import inspect
 import glob
 import platform
 
-from numpy.distutils.core import DistutilsSetupError, setup
+from distutils.errors import DistutilsSetupError
+from numpy.distutils.core import setup
 from numpy.distutils.ccompiler import get_default_compiler
 from numpy.distutils.command.build import build
 from numpy.distutils.command.install import install
