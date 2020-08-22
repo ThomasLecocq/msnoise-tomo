@@ -6,6 +6,8 @@ from msnoise.api import *
 import shutil
 import glob
 import random
+import os
+import pandas as pd
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk as NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
@@ -34,6 +36,10 @@ def main():
 
     if not os.path.isdir("TOMO_DISP"):
         os.makedirs("TOMO_DISP")
+
+    if not os.path.isdir("iFTAN_FILES"):
+        os.makedirs("iFTAN_FILES")
+
     db = connect()
     PER = get_config(db, "ftan_periods", plugin="Tomo")
     PER = np.array([float(pi) for pi in PER.split(',')])
@@ -67,42 +73,53 @@ def main():
         if not os.path.isdir(os.path.split(filename)[0]):
             os.makedirs(os.path.split(filename)[0])
         data.to_csv(filename)
-        
-    
+         
     def process(e=None, xdata=0, ydata=0):
+        
         filename = cb_val.get()
+        
         NET1, STA1, NET2, STA2, crap = os.path.split(filename)[1].split('_')
 
-        st = read(filename)
+        st   = read(filename)
         dist = st[0].stats.sac.dist
-        dt = st[0].stats.delta
+        dt   = st[0].stats.delta
 
+        # Plot the trace time series
+        # TODO plot the freqency filtered version of the trace instead of the broadband trace
+        # using fmin,fmax
         p = ccf.gca()
         p.cla()
-        taxis = np.arange(st[0].stats.npts)*st[0].stats.delta
-        vaxis = dist/taxis[1:]
-        zone = np.where((vaxis >= float(_vgmin.get())) & (vaxis <= float(_vgmax.get())))[0]
+        taxis = np.arange(st[0].stats.npts) * dt
+        vaxis = dist / taxis[1:]
+        # Get the part of the trace between vmin/vmax
+        zone  = np.where((vaxis >= float(_vgmin.get())) & (vaxis <= float(_vgmax.get())))[0]
 
-        p.plot(taxis, st[0].data)
-        p.plot(taxis[zone], st[0].data[zone], c='r')
+        # bandpass filter the trace for viewing if requested
+        tr = st[0] # a trace for plotting
+        if int(_filtered.get()):
+        	tr.filter('bandpass', freqmin=float(_fmin.get()), 
+        		freqmax=float(_fmax.get()), corners=2, zerophase=True)
+        p.plot(taxis, tr.data)
+        p.plot(taxis[zone], tr.data[zone], c='r')
         ccf.subplots_adjust(bottom=0.25)
         ccfcanvas.draw()
 
-        per, disper, seeds = pickgroupdispcurv(filename,
-                                               _fmin.get(),
+        per, disper, seeds = pickgroupdispcurv(filename, 
+                                               _fmin.get(), 
                                                _fmax.get(),
-                                               _vgmin.get(),
+                                               _vgmin.get(), 
                                                _vgmax.get(),
-                                               _bmin.get(),
-                                               _bmax.get(),
-                                               diagramtype,
-                                               nfreq,
-                                               _ampmin.get(),
+                                               _bmin.get(), 
+                                               _bmax.get(), 
+                                               _diagType.get(),
+                                               nfreq, 
+                                               _ampmin.get(), 
                                                dist,
-                                               xdata,
+                                               xdata, 
                                                ydata)
         basename = "%s.%s_%s.%s_%s" % (NET1, STA1, NET2, STA2, crap)
         basename = basename.replace(".SAC", "")
+        basename = os.path.join("iFTAN_FILES",basename)
         for _ in ["write_amp.txt",
                   "write_disp.txt",
                   "write_FP.txt",
@@ -110,40 +127,72 @@ def main():
                   "write_TV.txt",
                   ]:
             shutil.move(_, _.replace("write", basename))
-
-        U = np.loadtxt('%s_TV.txt' % basename)
-        P = np.loadtxt('%s_FP.txt' % basename)
+        
+        amp  = np.loadtxt('%s_amp.txt' % basename).T
+        U    = np.loadtxt('%s_TV.txt' % basename)
+        P    = np.loadtxt('%s_FP.txt' % basename)
         xmin = min(P)
         xmax = max(P)
         ymin = min(U)
         ymax = max(U)
-        amp = np.loadtxt('%s_amp.txt' % basename).T
+        
         iu = np.where((disper >= ymin) & (disper <= ymax))
         per = per[iu]
         disper = disper[iu]
         Per, Vitg = np.meshgrid(P, U)
+        
+        # second plot with the FTAN matrix
         f.clf()
         p = f.gca()
         p.cla()
+        
+        # normalize each column of the FTAN matrix if requested
         if int(_normed.get()):
             for i in range(amp.shape[1]):
                 amp[:,i] /= amp[:,i].max() 
         
+        # Plot the FTAN amplitude matrix
         c = p.contourf(Per, Vitg, amp, 35, cmap=cm_val.get())
         f.colorbar(c)
         
-        idxx = np.where(float(_minWL.get())*per*disper < dist)[0]
+        # Get the dispersion points where < minimum wavelength value
+        # idxx = np.where(float(_minWL.get())*per*disper < dist)[0]
+
+        # Set axes labels depending on diagramtype
+        # Wavelength criteria also depends on diagramtype
+        if _diagType.get() == 'PV':
+            p.set_xlabel("Period (s)", fontsize=12)
+            p.set_ylabel("Velocity (km/s)", fontsize=12)
+            idxx = np.where( float( _minWL.get() ) < dist/(disper*per) )[0]
+        
+        elif _diagType.get() == 'FV':
+            p.set_xlabel("Frequency (Hz)", fontsize=12)
+            p.set_ylabel("Velocity (km/s)", fontsize=12)
+            idxx = np.where(float(_minWL.get()) < dist/(disper/per) )[0]
+
+        elif _diagType.get() == 'FT':
+            p.set_xlabel("Frequency (Hz)", fontsize=12)
+            p.set_ylabel("Time (s)", fontsize=12)
+            idxx = np.where(float(_minWL.get()) < disper/(1/per) )[0]
+                    
+        elif _diagType.get() == 'PT':
+            p.set_xlabel("Period (s)", fontsize=12)
+            p.set_ylabel("Time (s)", fontsize=12)  
+            idxx = np.where(float(_minWL.get())< disper/per )[0]
+
+
+        # plot the dispersion curve
         p.plot(per, disper,'-ok', lw=1.5)
+        # plot points that meet wavelength requirement
         p.scatter(per[idxx], disper[idxx], marker='o', s=100, c="green", lw=1.5)
         p.scatter(seeds[:,0], seeds[:,1], s=10, marker='d', facecolor='w',
                   edgecolor="k")
+
+        # Save dispersion picks that meet min wavelength criteria --> save()
         global data
         data = pd.DataFrame(disper[idxx], index=per[idxx], columns=["Velocity"])
         data.index.name = "Period"
-        
-        # TODO add axes labels depending on diagramtype
-        p.set_xlabel("Period (s)", fontsize=12)
-        p.set_ylabel('Velocity (km/s)', fontsize=12)
+
         p.set_xlim(xmin, xmax)
         p.set_ylim(ymin, ymax)
         p.set_title("%s.%s - %s.%s (%.2f km)" % (NET1, STA1, NET2, STA2, dist))
@@ -277,6 +326,10 @@ def main():
     _normed = IntVar()
     chh = ttk.Checkbutton(mainframe, text="Normed", variable=_normed, \
                      onvalue=1, offvalue=0).grid(column=1, row=13, sticky=W)
+
+    _filtered = IntVar()
+    chh = ttk.Checkbutton(mainframe, text="Filtered", variable=_filtered, \
+                     onvalue=1, offvalue=0).grid(column=1, row=14, sticky=W)
 
     ttk.Button(mainframe, text="Compute", command=process,
                style='My.TButton').grid(column=2, row=13, sticky=W)
