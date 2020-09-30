@@ -104,17 +104,17 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
     time.sleep(0.1)
     # TODO still need to figure out how to use the tginit input in the C++ code. vinit doesn't seem to have an impact!
 
-   	# Process the automatically picked dispersion curve from the C++ code.
-    D = np.loadtxt('write_disp.txt')
-    if D.ndim == 2: # make sure that there is more than one pick
-        isort  = np.argsort(D[:,0]) # sort based on the first column (period)
-        D      = D[isort]
-        per    = D[:,0]
-        disper = D[:,1]
-    else:
-        print("Only one dispersion pick...check data!!!")
-        per = D[0]
-        disper = D[1]
+   	# # Process the automatically picked dispersion curve from the C++ code.
+    # D = np.loadtxt('write_disp.txt')
+    # if D.ndim == 2: # make sure that there is more than one pick
+    #     isort  = np.argsort(D[:,0]) # sort based on the first column (period)
+    #     D      = D[isort]
+    #     per    = D[:,0]
+    #     disper = D[:,1]
+    # else:
+    #     print("Only one dispersion pick...check data!!!")
+    #     per = D[0]
+    #     disper = D[1]
 
     # print(per)
     # print(disper)
@@ -140,7 +140,12 @@ def pickgroupdispcurv(filename, fmin, fmax, vgmin, vgmax, bmin, bmax,
     # seeds = seeds[isort] # just sort the whole matrix based on period
 
     # return per, disper, seeds
-    return per, disper, D
+
+    # print(per)
+    # print(disper)
+
+    # return per, disper, D
+    return
 
 
 if __name__ == "__main__":
