@@ -82,7 +82,7 @@ def main():
             f.write("%f %f\n"%(minlon, maxlon))
             f.write("%f %f\n"%(minlat, maxlat))
             f.write("%f %f\n"%(xstep, ystep))
-            f.close
+            f.close()
 
 
 if __name__ == "__main__":
