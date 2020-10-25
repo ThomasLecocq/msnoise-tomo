@@ -518,6 +518,34 @@ def plot_raypath_velocities(x, X, dx, y, Y, dy, Stations, sv, s, V0, Vgmesur, Ds
     plt.title("Period=%.4f s, V0=%.3f km/s" % (PERIOD, V0))
     plt.savefig("result_paths_%.3fs.png" % PERIOD, dpi=300)
 
+def plot_residual_histogram(residual, dist, PERIOD):
+
+    rmax = np.max(np.abs(residual))
+
+    # 1D histogram bar plot
+    plt.figure()
+    plt.hist(residual, bins=20, range=(-rmax,rmax))
+    plt.grid()
+    plt.xlabel("Residual time [s]")
+    plt.ylabel("Num. data")
+    fig = plt.gcf()
+    fig.set_size_inches(10,8)
+    plt.title("Period=%.4f s" % PERIOD)
+    plt.savefig("residuals_%.3fs.png" % PERIOD, dpi=300)
+
+    # 2D heatmap
+    plt.figure()
+    plt.hist2d(residual, dist, bins=50, range=((-rmax,rmax),(0,np.max(dist))))
+    plt.grid()
+    plt.xlabel("Residual time [s]")
+    plt.ylabel("Interstation distance [km]")
+    cb = plt.colorbar(format="%0.3f")
+    cb.set_label("Num. data")
+    fig = plt.gcf()
+    fig.set_size_inches(10,8)
+    plt.title("Period=%.4f s" % PERIOD)
+    plt.savefig("residuals_2D_%.3fs.png" % PERIOD, dpi=300)
+
 def write_tomo_grid(M_vel, Dsity, PERIOD):
 
     M = set_vel_model_nans(Dsity, M_vel)
@@ -581,7 +609,18 @@ def unproject(z, l, x, y):
     lon, lat = _projections[z](x, y, inverse=True)
     return (lon, lat)
 
+def write_residuals(PERIOD, residual, dist):
+    # write a CSV file of the residuals vs. interstation distance
 
+    if len(residual) != len(dist):
+        print("Residual vector not same length as distance vector.")
+
+    file = "residuals_%.3fs.dat" % PERIOD
+    file = open(file, "w")
+    file.write("dist [km], residual [s]\n")
+    for index in range(len(dist)):
+        file.write("%0.3f, %0.5f\n" % (dist[index], residual[index]))
+    file.close()
 
 def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cmap):
     # Create the tomography output file
@@ -817,7 +856,8 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     logging.info("Final Mvel computed")
 
     t_calc2 = GG * (1. / m_vel2)
-    RMS_l2 = np.var((t_calc2 - t_obs[s]))
+    residual = t_calc2 - t_obs[s]
+    RMS_l2 = np.var(residual)
     RMS0_l = np.var(dt)
 
     logging.info("Variance of dt for background velocity model, RMS0_l = %0.2e " % RMS0_l)
@@ -833,6 +873,11 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     tomofile.write("lambda2: %0.6f\n" % lambda2)
     tomofile.write("RMS2 [s]: %0.6f\n" % RMS_l2)
     tomofile.write("Var. Reduction [%%]: %0.6f\n" % vared2)
+
+    # Write the residuals file
+    dist = GG.toarray().sum(axis=1)  ## this is the final G-matrix after windowing
+    write_residuals(PERIOD, residual, dist)
+
 
     print("Done with inversion...plotting results.")
 
@@ -850,6 +895,9 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
 
         # Raypaths colored by velocities
         plot_raypath_velocities(x, X, dx, y, Y, dy, Stations, sv, s, V0, Vgmesur, Dsity, PERIOD, v_cmap, plot_type)
+
+        # Residuals histogram
+        plot_residual_histogram(residual, dist, PERIOD)
 
         # Write the KMZ file for GoogleEarth
         write_tomo_kmz(x, X, dx, y, Y, dy, M_vel, Dsity, PERIOD, v_cmap)
