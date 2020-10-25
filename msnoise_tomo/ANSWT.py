@@ -70,22 +70,32 @@ def loadF(nX, nY, smoothfactor, gridfile):
     return F
 
 
-def LoadSmoothParam(paramFile):
+def LoadSmoothParam(paramFile, tomofile):
+
     param = np.loadtxt(paramFile, skiprows=1, delimiter=" ")
 
+    # For the first iteration
     a1 = param[0]
     b1 = param[1]
-    l1 = param[2]
-    s1 = param[3]
-
+    l1 = param[2]  # lambda
+    s1 = param[3]  # sigma --> Lcorr
+    # For the second iteration
     a2 = param[4]
     b2 = param[5]
     l2 = param[6]
     s2 = param[7]
+
+    logging.info("Smoothing parameter pairs")
+    logging.info("Iteration 1 (alpha1,sigma1): (%f, %f)" % (a1, s1))
+    logging.info("Iteration 2 (alpha2,sigma2): (%f, %f)" % (a2, s2))
+    logging.info("Damping parameter pairs")
+    logging.info("Iteration 1 (beta1,lambda1): (%f, %f)" % (b1, l1))
+    logging.info("Iteration 2 (beta2,lambda2): (%f, %f)" % (b2, l2))
+
     return [a1, b1, l1, s1, a2, b2, l2, s2]
 
 
-def initModel(gridfile):
+def initModel(gridfile, tomofile):
     grid = np.loadtxt(gridfile)
     print("Finished reading %s" % gridfile)
     print("Converting the grid and stations to UTM in kilometers for inversion")
@@ -134,17 +144,29 @@ def initModel(gridfile):
     np.savetxt("UTMgrid.dat", ((xmin,xmax),(ymin,ymax),(dx,dy)), delimiter=' ',fmt='%0.6f')
     # Note that the makeG and makeF functions have now hardcoded this filename, instead of 'gridfile' variable
 
+    tomofile.write("Wrote UTMgrid.dat\n")
+    tomofile.write("x-min [km]: %0.6f\n" % xmin)
+    tomofile.write("x-max [km]: %0.6f\n" % xmax)
+    tomofile.write("dx [km]: %0.6f\n" % dx)
+    tomofile.write("nx: %d\n" % nX)
+    tomofile.write("y-min [km]: %0.6f\n" % ymin)
+    tomofile.write("y-max [km]: %0.6f\n" % ymax)
+    tomofile.write("dy [km]: %0.6f\n" % dy)
+    tomofile.write("ny: %d\n" % nY)
+
     return [X0, Y0, nX, nY, dx, dy]
 
 
-def load_coorinate_file(stacoordfile):
+def load_coorinate_file(stacoordfile, tomofile):
     # STA NET LAT LON EL
     STALOC = np.loadtxt(stacoordfile, dtype=str)
     nbsta = STALOC.shape[0]
+    tomofile.write("Number of stations: %d\n" % nbsta)
+    tomofile.write("NET.STA \t Network \t Northing \t Easting \t Elevation\n")
 
-    print("Station Information")
-    print("NET.STA \t NET \t LAT \t LON \t ELE")
-    print(STALOC)
+    # print("Station Information")
+    # print("NET.STA \t NET \t LAT \t LON \t ELE")
+    # print(STALOC)
 
     # Convert the station coordinates to UTM [km]
     # There is no error/warning to through here regarding UTM zones...assuming that the warning will be done in the grid file step
@@ -152,15 +174,17 @@ def load_coorinate_file(stacoordfile):
         z, l, x, y = project((float(STALOC[ii][3]), float(STALOC[ii][2])))
         STALOC[ii][3] = x/1000
         STALOC[ii][2] = y/1000
+        tomofile.write("%s \t %s \t %.0f \t %.0f \t %.0f\n" % (STALOC[ii][0],STALOC[ii][1],
+                                                       y, x, float(STALOC[ii][4])))
 
-    print("Station Information")
-    print("NET.STA \t NET \t Northing \t Easting \t ELE")
-    print(STALOC)
+    # print("Station Information")
+    # print("NET.STA \t NET \t Northing \t Easting \t ELE")
+    # print(STALOC)
 
     return STALOC, nbsta
 
 
-def load_dcfile(DCfile, STALOC):
+def load_dcfile(DCfile, STALOC, tomofile):
     nbsta = STALOC.shape[0]
 
     # STA1 STA2 PER VG eVG DIST
@@ -187,10 +211,12 @@ def load_dcfile(DCfile, STALOC):
     dist = np.array(DC[:, 5], dtype=float)  # [km] interstation distance
     print('Dispersion data loaded')
 
+    tomofile.write("Data loaded: %d\n" % nbCorr)
+
     return Stations, Vg, dist
 
 
-def winnow_velocity_data(Vg, dist, var_lim):
+def winnow_velocity_data(Vg, dist, var_lim, tomofile):
     MoyV_meas = np.median(Vg)
     VarV_meas = np.std(Vg)
 
@@ -208,10 +234,13 @@ def winnow_velocity_data(Vg, dist, var_lim):
 
     print('There are %i data after winnowing.' % len(Vg1))
 
+    tomofile.write("Removing data based on velocity outliers\n")
+    tomofile.write("Num. data passed: %d\n" % len(Vg1))
+
     return Vg1, sv, dist1
 
 
-def winnow_travel_time_data(dt3, nData1, Vg1, GGG):
+def winnow_travel_time_data(dt3, nData1, Vg1, GGG, tomofile):
     MoyT_calc = np.mean(dt3)  # mean of the residuals
     VarT_calc = np.std(dt3)  # standard deviation
 
@@ -227,6 +256,9 @@ def winnow_travel_time_data(dt3, nData1, Vg1, GGG):
     Vgmesur = Vg1[s]  # remove these velocities
     GG = GGG[s, :]  # remove these rows
     logging.info("Removed those %d rows of G-matrix" % (nData1 - nData2))
+
+    tomofile.write("Removing outliers\n")
+    tomofile.write("Num. data passed: %d\n" % nData2)
 
     return dt2, Vgmesur, GG, s
 
@@ -252,7 +284,7 @@ def compute_raypaths(STALOC, Stations, sv):
     y2 = y[Stations[sv, 1]]
 
     lpath = np.array([x1, y1, x2, y2]).T
-    np.savetxt('lpath.txt', lpath, fmt="%.6f")  # D.M. This could be a problem if not to enough decimals
+    np.savetxt('lpath.txt', lpath, fmt="%.6f")
     print('lpath.txt written')
     nData1 = lpath.shape[0]
     print('There are %i data to invert.' % nData1)
@@ -260,8 +292,6 @@ def compute_raypaths(STALOC, Stations, sv):
     # compute distance between stations
     dist = (np.hypot(x1 - x2, y1 - y2))
 
-    # TODO Here is where we should convert to local cartesian grid.
-    # Then we can write both outputs out (km and degree)
     return x, y, dist
 
 
@@ -396,7 +426,7 @@ def plot_velocity_model(x, X, dx, y, Y, dy, M_vel, V0, vared2, Dsity, PERIOD, v_
 def write_tomo_kmz(x, X, dx, y, Y, dy, M_vel, Dsity, PERIOD, v_cmap):
 
     # TODO need to fix this function now that we do grid in kilometers
-    
+
     M = set_vel_model_nans(Dsity, M_vel)
 
     lonlim = [np.amin(X) - dx, np.amax(X) + dx]
@@ -554,37 +584,32 @@ def unproject(z, l, x, y):
 
 
 def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cmap):
-    X, Y, nX, nY, dx, dy = initModel(gridfile)
+    # Create the tomography output file
+    tomofile = "tomo_%.3fs.dat" % PERIOD
+    tomofile = open(tomofile, "w")
+
+    X, Y, nX, nY, dx, dy = initModel(gridfile, tomofile)
 
     # Data loading
-    STALOC, nbsta = load_coorinate_file(stacoordfile)
-    Stations, Vg, dist_dc = load_dcfile(DCfile, STALOC)
+    STALOC, nbsta = load_coorinate_file(stacoordfile, tomofile)
+    Stations, Vg, dist_dc = load_dcfile(DCfile, STALOC, tomofile)
     print("load_dcfile: dist")
     # print(dist_dc)
 
     # Winnow data outside of the var_lim standard deviations
     var_lim = 3
-    Vg1, sv, dist_dc = winnow_velocity_data(Vg, dist_dc, var_lim)
-    # dist = dist/1000  # convert to km
-    # t_obs = dist / Vg1  # [s] arrival time data
-    # print("dist, t_obs")
-    # print((dist, t_obs))
-
+    Vg1, sv, dist_dc = winnow_velocity_data(Vg, dist_dc, var_lim, tomofile)
     V0 = np.median(Vg1)  # v0 = average velocity [km/s]
+    tomofile.write("V0 [km/s]: %0.3f\n" % V0)  # write to the output file
     print("Median Group Velocity: V0=%0.3f [km/s]" % V0)
     m0 = V0 * np.ones((nX, nY))  # m0 = initial velocity model
     # print("m0.shape", m0.shape)
     logging.info("m0.shape: (%d, %d)" % m0.shape)
 
-    # Regularization terms
-    alpha1, beta1, lambda1, Lcorr1, alpha2, beta2, lambda2, Lcorr2 = LoadSmoothParam(paramfile)
-    logging.info("Smoothing parameter pairs")
-    logging.info("Iteration 1 (alpha1,sigma1): (%f, %f)" % (alpha1, Lcorr1))
-    logging.info("Iteration 2 (alpha2,sigma2): (%f, %f)" % (alpha2, Lcorr2))
-    logging.info("Damping parameter pairs")
-    logging.info("Iteration 1 (beta1,lambda1): (%f, %f)" % (beta1, lambda1))
-    logging.info("Iteration 2 (beta2,lambda2): (%f, %f)" % (beta2, lambda2))
+    # Get regularization terms
+    alpha1, beta1, lambda1, Lcorr1, alpha2, beta2, lambda2, Lcorr2 = LoadSmoothParam(paramfile, tomofile)
 
+    # Compute (x,y) pairs for data raypaths
     x, y, dist_hypot = compute_raypaths(STALOC, Stations, sv)
 
     # OLD WAY:
@@ -659,9 +684,9 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     # sum along rows of G-matrix to get ray distance
     dist = GG.toarray().sum(axis=1) # distance in units of the grid
     # Compute the observed times in whatever units the grid is.
-    t_obs = dist / Vg1  # [??] arrival time data
-    print("dist, dist_hypot, dist_dc")
-    print((dist, dist_hypot, dist_dc))
+    t_obs = dist / Vg1  # [s] arrival time data
+    # print("dist, dist_hypot, dist_dc")
+    # print((dist, dist_hypot, dist_dc))
 
     print("\n----------------------------------------------------\n")
     print("Starting first iteration; velocity outliers removed!\n")
@@ -671,8 +696,8 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     T0 = GG * (1. / m0.flatten())  # compute predicted data for initial model
     dt = t_obs - T0  # compute travel-time residuals relative to reference model T0.
     G = GG * (1. / V0)  # normalize G by V0 (equation 14 in Mordret et al., 2013)
-    print("t_obs, T0, dt")
-    print(t_obs, T0, dt)
+    # print("t_obs, T0, dt")
+    # print(t_obs, T0, dt)
 
     # get the smoothing matrix
     F = make_smoothing_matrix(nX, nY, Lcorr1, "UTMgrid.dat")
@@ -733,6 +758,12 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     RMS_l1 = np.std(dt3)  # compute the standard deviation of the residuals
     logging.info("Standard deviation of residuals: RMS_l1=%0.2e [s]" % RMS_l1)
 
+    tomofile.write("Iteration 1:\n")
+    tomofile.write("alpha1: %0.6f\n" % alpha1)
+    tomofile.write("sigma1: %0.6f\n" % Lcorr1)
+    tomofile.write("beta1: %0.6f\n" % beta1)
+    tomofile.write("lambda1: %0.6f\n" % lambda1)
+    tomofile.write("RMS1 [s]: %0.6f\n" % RMS_l1)
 
     print("\n----------------------------------------------------\n")
     print("Starting second iteration; outliers will be removed!\n")
@@ -741,8 +772,10 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     # m02 = model initial No 2
     m02 = m_vel1
 
+    tomofile.write("Iteration 2:\n")
+
     # Remove outliers based on travel times
-    dt2, Vgmesur, GG, s = winnow_travel_time_data(dt3, nData1, Vg1, GGG)
+    dt2, Vgmesur, GG, s = winnow_travel_time_data(dt3, nData1, Vg1, GGG, tomofile)
 
     invCd = scipy.sparse.dia_matrix(np.diag(np.ones(len(dt2))))  # create
     m1 = 1. / m02  # create the slowness vector
@@ -793,6 +826,15 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     # compute the variance reduction
     vared2 = 100.0 * (1.0 - RMS_l2/RMS0_l)
     logging.info("Variance reduction from RMS0_l and RMS_l2: %0.2f%%" % vared2)
+
+    tomofile.write("alpha2: %0.6f\n" % alpha2)
+    tomofile.write("sigma2: %0.6f\n" % Lcorr2)
+    tomofile.write("beta2: %0.6f\n" % beta2)
+    tomofile.write("lambda2: %0.6f\n" % lambda2)
+    tomofile.write("RMS2 [s]: %0.6f\n" % RMS_l2)
+    tomofile.write("Var. Reduction [%%]: %0.6f\n" % vared2)
+
+    print("Done with inversion...plotting results.")
 
     # Make figures even if the user did not ask for them to be shown
     doplot = 1
@@ -894,6 +936,8 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     #     # data2[id]*=np.nan
     #     plt.contourf(X + dx / 2, Y + dy / 2, data2, 30, origin='lower', cmap='jet_r')
     #     plt.show()
+
+    tomofile.close()  # close the output file
 
 
 def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
