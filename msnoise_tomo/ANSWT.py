@@ -2,7 +2,7 @@ import os
 # import sys
 import traceback
 import zipfile
-
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -96,39 +96,69 @@ def LoadSmoothParam(paramFile, tomofile):
 
 
 def initModel(gridfile, tomofile):
+
     grid = np.loadtxt(gridfile)
     print("Finished reading %s" % gridfile)
-    print("Converting the grid and stations to UTM in kilometers for inversion")
+    print("Converting the grid corners to UTM.")
+    print("Determing grid type to use.")
 
-    # get the grid step sizes from grid file
-    dx = grid[2, 0]  # deg
-    dy = grid[2, 1]  # deg
-    # TODO we should modify prepare_tomo so that the use gives xstep,ystep in config in meters or km
+    # Notes: on the grid file format
+    lonmin = grid[0,0]  # [deg] lower left corner
+    latmin = grid[1,0]  # [deg] lower left corner
+    lonmax = grid[0,1]  # [deg] upper right corner
+    latmax = grid[1,1]  # [deg] upper right corner
+    # dx = grid[2, 0]  # [deg] grid step sizes
+    # dy = grid[2, 1]  # [deg] grid step sizes
 
-    # xmin = grid[0,0]
-    # xmax = grid[0,1]
-    # ymin = grid[1,0]
-    # ymax = grid[1,1]
+    # Convert grid to UTM [m] and check if in single zone or not
+    zmin, lmin, xmin, ymin = project((lonmin, latmin))  # lower left corner (lonmin,latmin)
+    zmax, lmax, xmax, ymax = project((lonmax, latmax))  # upper right corner (lonmax,latmax)
+    print("Lower left grid corner UTM zone: %d%s" % (zmin, lmin))
+    print("Upper right grid corner UTM zone: %d%s" % (zmax, lmax))
 
-    # Convert to UTM with units of kilometers
-    zmin, lmin, xmin, ymin = project((grid[0,0], grid[1,0]))  # lower left corner (lonmin,latmin)
-    zmax, lmax, xmax, ymax = project((grid[0,1], grid[1,1]))  # upper right corner (lonmax,latmax)
-    print("Lower left UTM zone: %d%s" % (zmin, lmin))
-    print("Upper right UTM zone: %d%s" % (zmax, lmax))
-    if zmin != zmax or lmin != lmax:
+    # mean Earth radius
+    R = 6371
+    # grid_type = "local"  # can force local computation by setting this variable
+    grid_type = []
+
+    # Choose which coordinate system to use (UTM, if single zone, otherwise local cartesian)
+    if zmin != zmax or lmin != lmax or grid_type == "local":
         print("Tomography grid covers two UTM zones: (%d%s, %d%s)" % (zmin, lmin,zmax, lmax))
-        print("Have not tested this case yet! Proceed with caution.")
+        print("Creating local cartesian grid centered in middle of grid.")
+        grid_type = "local"
 
-    # Meters to km conversion
-    xmin = xmin / 1000
-    xmax = xmax / 1000
-    ymin = ymin / 1000
-    ymax = ymax / 1000
+        lat0 = latmin + (latmax - latmin) / 2  # [deg] grid center
+        lon0 = lonmin + (lonmax - lonmin) / 2  # [deg] grid center
+
+        # Convert LL grid corner
+        dlat = (latmin - lat0) * (np.pi/180)
+        dlon = (lonmin - lon0) * (np.pi/180)
+        # Convert to cartesian in [km]
+        xmin = R * dlon * np.cos(dlat)
+        ymin = R * dlat
+
+        # Convert UR grid corner
+        dlat = (latmax - lat0) * (np.pi/180)
+        dlon = (lonmax - lon0) * (np.pi/180)
+        # Convert to cartesian in [km]
+        xmax = R * dlon * np.cos(dlat)
+        ymax = R * dlat
+
+    else:
+        print("Tomography grid covers one UTM zone.")
+        print("Using UTM coordinates for the cartesian grid.")
+        grid_type = "utm"
+
+        # Meters to km conversion for the UTM coordinates
+        xmin = xmin / 1000
+        xmax = xmax / 1000
+        ymin = ymin / 1000
+        ymax = ymax / 1000
+
 
     # Degrees to km for distance in degree with earth radius
-    r = 6371  # [km] earth radius
-    dx = r * dx * (np.pi / 180)  # [km]
-    dy = r * dy * (np.pi / 180)  # [km]
+    dx = R * grid[2, 0] * (np.pi / 180)  # [km] x-step size
+    dy = R * grid[2, 1] * (np.pi / 180)  # [km] y-step size
 
     # Setup the grid in kilometers
     nX = np.floor(np.floor((xmax - xmin) / dx)) + 1
@@ -140,11 +170,11 @@ def initModel(gridfile, tomofile):
 
     print("nX and nY from gridfile & initModel", nX, nY)
 
-    # Write the new UTMgrid file
-    np.savetxt("UTMgrid.dat", ((xmin,xmax),(ymin,ymax),(dx,dy)), delimiter=' ',fmt='%0.6f')
+    # Write the new XYgrid file
+    np.savetxt("XYgrid.dat", ((xmin,xmax),(ymin,ymax),(dx,dy)), delimiter=' ',fmt='%0.6f')
     # Note that the makeG and makeF functions have now hardcoded this filename, instead of 'gridfile' variable
 
-    tomofile.write("Wrote UTMgrid.dat\n")
+    tomofile.write("Wrote XYgrid.dat\n")
     tomofile.write("x-min [km]: %0.6f\n" % xmin)
     tomofile.write("x-max [km]: %0.6f\n" % xmax)
     tomofile.write("dx [km]: %0.6f\n" % dx)
@@ -154,10 +184,10 @@ def initModel(gridfile, tomofile):
     tomofile.write("dy [km]: %0.6f\n" % dy)
     tomofile.write("ny: %d\n" % nY)
 
-    return [X0, Y0, nX, nY, dx, dy]
+    return [X0, Y0, nX, nY, dx, dy, grid_type]
 
 
-def load_coorinate_file(stacoordfile, tomofile):
+def load_coorinate_file(stacoordfile, tomofile, grid_type, gridfile):
     # STA NET LAT LON EL
     STALOC = np.loadtxt(stacoordfile, dtype=str)
     nbsta = STALOC.shape[0]
@@ -168,14 +198,47 @@ def load_coorinate_file(stacoordfile, tomofile):
     # print("NET.STA \t NET \t LAT \t LON \t ELE")
     # print(STALOC)
 
-    # Convert the station coordinates to UTM [km]
-    # There is no error/warning to through here regarding UTM zones...assuming that the warning will be done in the grid file step
-    for ii, station in enumerate(STALOC):
-        z, l, x, y = project((float(STALOC[ii][3]), float(STALOC[ii][2])))
-        STALOC[ii][3] = x/1000
-        STALOC[ii][2] = y/1000
-        tomofile.write("%s \t %s \t %.0f \t %.0f \t %.0f\n" % (STALOC[ii][0],STALOC[ii][1],
-                                                       y, x, float(STALOC[ii][4])))
+    # grid_type = "local"  # can force local grid here
+
+    if grid_type == "utm":
+        for ii, station in enumerate(STALOC):
+            # compute each station's UTM location
+            z, l, x, y = project((float(STALOC[ii][3]), float(STALOC[ii][2])))
+            STALOC[ii][3] = x/1000
+            STALOC[ii][2] = y/1000
+            tomofile.write("%s \t %s \t %s \t %s \t %s\n" % (STALOC[ii][0],
+                                                             STALOC[ii][1],
+                                                             y,
+                                                             x,
+                                                             STALOC[ii][4]))
+    elif grid_type == "local":
+        grid = np.loadtxt(gridfile)
+        lonmin = grid[0,0]  # [deg] lower left corner
+        latmin = grid[1,0]  # [deg] lower left corner
+        lonmax = grid[0,1]  # [deg] upper right corner
+        latmax = grid[1,1]  # [deg] upper right corner
+        lat0 = latmin + (latmax - latmin) / 2  # [deg] grid center
+        lon0 = lonmin + (lonmax - lonmin) / 2  # [deg] grid center
+
+        lat = STALOC[:,2].astype(float)
+        lon = STALOC[:,3].astype(float)
+
+        # Convert station coordinates
+        dlat = (lat - lat0) * (np.pi/180)
+        dlon = (lon - lon0) * (np.pi/180)
+        # Convert to cartesian in [km]
+        R = 6371  # [km] mean Earth radius
+        x = R * dlon * np.cos(dlat)
+        y = R * dlat
+        STALOC[:,3] = x
+        STALOC[:,2] = y
+
+        for ii, station in enumerate(STALOC):
+            tomofile.write("%s \t %s \t %s \t %s \t %s\n" % (STALOC[ii][0],
+                                                                   STALOC[ii][1],
+                                                                   STALOC[ii][2],
+                                                                   STALOC[ii][3],
+                                                                   STALOC[ii][4]))
 
     # print("Station Information")
     # print("NET.STA \t NET \t Northing \t Easting \t ELE")
@@ -342,13 +405,6 @@ def plot_ray_density(x, X, dx, nX, y, Y, dy, nY, G, PERIOD, d_cmap, plot_type):
         ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%8.0f'))
 
     if plot_type == "local":
-        # First center grid and stations on average station location
-        x0 = np.mean(x)
-        y0 = np.mean(y)
-        X = X - x0
-        Y = Y - y0
-        x = x - x0
-        y = y - y0
 
         plt.figure()
         plt.contourf(X + dx / 2, Y + dy / 2, densitypath, 30, origin='lower', cmap=d_cmap)
@@ -394,13 +450,6 @@ def plot_velocity_model(x, X, dx, y, Y, dy, M_vel, V0, vared2, Dsity, PERIOD, v_
         ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%8.0f'))
 
     if plot_type == "local":
-        # First center grid and stations on average station location
-        x0 = np.mean(x)
-        y0 = np.mean(y)
-        X = X - x0
-        Y = Y - y0
-        x = x - x0
-        y = y - y0
 
         plt.figure()
         cf = plt.contourf(X + dx/2, Y + dy/2, M, 30, origin='lower', cmap=v_cmap)
@@ -492,10 +541,6 @@ def plot_raypath_velocities(x, X, dx, y, Y, dy, Stations, sv, s, V0, Vgmesur, Ds
         ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%8.0f'))
 
     if plot_type == "local":
-        # First center grid and stations on average station location
-        x0 = np.mean(x); y0 = np.mean(y)
-        X = X - x0; Y = Y - y0; x = x - x0; y = y - y0
-        x11 = x11 - x0; y11 = y11 - y0; x21 = x21 - x0; y21 = y21 - y0
 
         plt.figure()
         for (a, b, c, d, C) in zip(x11, x21, y11, y21, colors):
@@ -627,10 +672,10 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     tomofile = "tomo_%.3fs.dat" % PERIOD
     tomofile = open(tomofile, "w")
 
-    X, Y, nX, nY, dx, dy = initModel(gridfile, tomofile)
+    X, Y, nX, nY, dx, dy, grid_type = initModel(gridfile, tomofile)
 
     # Data loading
-    STALOC, nbsta = load_coorinate_file(stacoordfile, tomofile)
+    STALOC, nbsta = load_coorinate_file(stacoordfile, tomofile, grid_type, gridfile)
     Stations, Vg, dist_dc = load_dcfile(DCfile, STALOC, tomofile)
     print("load_dcfile: dist")
     # print(dist_dc)
@@ -653,7 +698,7 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
 
     # OLD WAY:
     logging.info("Loading G matrix from C-code")
-    GGG = loadG(nX, nY, 'lpath.txt', "UTMgrid.dat")
+    GGG = loadG(nX, nY, 'lpath.txt', "XYgrid.dat")
     logging.info("G.shape from old path code: (%d,%d) (matG.bin)" % GGG.shape)
     # print("G.shape from old path code: (%d,%d) (matG.bin)", GGG.shape())
 
@@ -739,7 +784,7 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     # print(t_obs, T0, dt)
 
     # get the smoothing matrix
-    F = make_smoothing_matrix(nX, nY, Lcorr1, "UTMgrid.dat")
+    F = make_smoothing_matrix(nX, nY, Lcorr1, "XYgrid.dat")
 
     # Compute the damping matrix
     H = loadH(G, float(lambda1))  # Damping matrix
@@ -836,7 +881,7 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
 
     # Get F matrix based on Lcorr2 (sigma2)
     logging.info('Making F-matrix (smoothing) from C code for sigma: %0.2e' % Lcorr2)
-    F = loadF(nX, nY, Lcorr2, "UTMgrid.dat")  # Smoothing matrix
+    F = loadF(nX, nY, Lcorr2, "XYgrid.dat")  # Smoothing matrix
     F = scipy.sparse.lil_matrix(F)
     logging.info('F-sigma loaded')
 
@@ -878,12 +923,11 @@ def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cma
     dist = GG.toarray().sum(axis=1)  ## this is the final G-matrix after windowing
     write_residuals(PERIOD, residual, dist)
 
-
     print("Done with inversion...plotting results.")
 
     # Make figures even if the user did not ask for them to be shown
     doplot = 1
-    plot_type = "utm"  # "utm" or "local"
+    plot_type = grid_type  # "utm" or "local"
 
     if doplot:
 
