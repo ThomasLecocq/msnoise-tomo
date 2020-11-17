@@ -423,7 +423,7 @@ def plot_ray_density(x, X, dx, nX, y, Y, dy, nY, G, PERIOD, d_cmap, plot_type):
     ax.axis('equal')
     plt.grid()
     plt.title("Period=%.4f s" % PERIOD)
-    plt.savefig("result_density_%.3fs.png" % PERIOD, dpi=300)
+    plt.savefig("result_density_%.4fs.png" % PERIOD, dpi=300)
 
     return Dsity
 
@@ -469,7 +469,7 @@ def plot_velocity_model(x, X, dx, y, Y, dy, M_vel, V0, vared2, Dsity, PERIOD, v_
     ax.axis('equal')
     plt.grid()
     plt.title("Period=%.4f s, V0=%.3f km/s, VarRed=%.2f%%" % (PERIOD, V0, vared2))
-    plt.savefig("result_tomo_%.3fs.png" % PERIOD, dpi=300)
+    plt.savefig("result_tomo_%.4fs.png" % PERIOD, dpi=300)
 
 
 def write_tomo_kmz(x, X, dx, y, Y, dy, M_vel, Dsity, PERIOD, v_cmap):
@@ -492,7 +492,7 @@ def write_tomo_kmz(x, X, dx, y, Y, dy, M_vel, Dsity, PERIOD, v_cmap):
     plt.savefig("test.png", transparent=True, dpi=600)
     plt.close(fig)
 
-    with zipfile.ZipFile('tomo-result_%.3fs.kmz' % PERIOD, 'w') as z:
+    with zipfile.ZipFile('tomo-result_%.4fs.kmz' % PERIOD, 'w') as z:
         z.writestr('doc.kml', kml.format(
             path='files/test.png',
             lat_north=latlim[1],
@@ -561,7 +561,7 @@ def plot_raypath_velocities(x, X, dx, y, Y, dy, Stations, sv, s, V0, Vgmesur, Ds
     ax.axis('equal')
     plt.grid()
     plt.title("Period=%.4f s, V0=%.3f km/s" % (PERIOD, V0))
-    plt.savefig("result_paths_%.3fs.png" % PERIOD, dpi=300)
+    plt.savefig("result_paths_%.4fs.png" % PERIOD, dpi=300)
 
 def plot_residual_histogram(residual, dist, PERIOD):
 
@@ -576,7 +576,7 @@ def plot_residual_histogram(residual, dist, PERIOD):
     fig = plt.gcf()
     fig.set_size_inches(10,8)
     plt.title("Period=%.4f s" % PERIOD)
-    plt.savefig("residuals_%.3fs.png" % PERIOD, dpi=300)
+    plt.savefig("residuals_%.4fs.png" % PERIOD, dpi=300)
 
     # 2D heatmap
     plt.figure()
@@ -589,14 +589,14 @@ def plot_residual_histogram(residual, dist, PERIOD):
     fig = plt.gcf()
     fig.set_size_inches(10,8)
     plt.title("Period=%.4f s" % PERIOD)
-    plt.savefig("residuals_2D_%.3fs.png" % PERIOD, dpi=300)
+    plt.savefig("residuals_2D_%.4fs.png" % PERIOD, dpi=300)
 
 def write_tomo_grid(M_vel, Dsity, PERIOD):
 
     M = set_vel_model_nans(Dsity, M_vel)
 
     # Tomo result
-    filename = "tomo_%.3fs.txt" % PERIOD
+    filename = "tomo_%.4fs.txt" % PERIOD
     np.savetxt(filename, M)
 
 def set_vel_model_nans(Dsity, M_vel):
@@ -660,7 +660,7 @@ def write_residuals(PERIOD, residual, dist):
     if len(residual) != len(dist):
         print("Residual vector not same length as distance vector.")
 
-    file = "residuals_%.3fs.dat" % PERIOD
+    file = "residuals_%.4fs.dat" % PERIOD
     file = open(file, "w")
     file.write("dist [km], residual [s]\n")
     for index in range(len(dist)):
@@ -669,7 +669,7 @@ def write_residuals(PERIOD, residual, dist):
 
 def ANSWT(gridfile, stacoordfile, DCfile, paramfile, PERIOD, show, v_cmap, d_cmap):
     # Create the tomography output file
-    tomofile = "tomo_%.3fs.dat" % PERIOD
+    tomofile = "tomo_%.4fs.dat" % PERIOD
     tomofile = open(tomofile, "w")
 
     X, Y, nX, nY, dx, dy, grid_type = initModel(gridfile, tomofile)
@@ -1063,9 +1063,11 @@ def main(per, a1, b1, l1, s1, a2, b2, l2, s2, filterid, comp, show):
     stacoordfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "STACoord.dat")
 
     for per in periods:
-        DCfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.3fs.dat" % float(per))
+        DCfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.4fs.dat" % float(per))
         print("Processing %s" % DCfile)
+        logging.info("Processing %s" % DCfile)
         PERIOD = per
+        logging.info("Period from db_config: %.4f" % PERIOD)
 
         paramfile = os.path.join("TOMO_FILES", "%02i" % filterid, comp, 'ParamFile.txt')
         print("Writing parameters to %s" % paramfile)
