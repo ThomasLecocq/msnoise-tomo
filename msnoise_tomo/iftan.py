@@ -55,6 +55,7 @@ def main():
     nfreq       = int(get_config(db, "ftan_nfreq", plugin="Tomo"))
     ampmin      = float(get_config(db, "ftan_ampmin", plugin="Tomo"))
     diagramtype = get_config(db, "ftan_diagramtype", plugin="Tomo")
+    tmax        = []  # make empty until tmax is set from the trace object
     
     # nfreq = 100
     db = connect()
@@ -88,6 +89,9 @@ def main():
         p = ccf.gca()
         p.cla()
         taxis = np.arange(st[0].stats.npts) * dt
+        if len(_tmax.get()) is 0:
+            _tmax.set(float(taxis[-1:]))  # set the tmax variable if not yet defined
+
         vaxis = dist / taxis[1:]
         # Get the part of the trace between vmin/vmax
         zone  = np.where((vaxis >= float(_vgmin.get())) & (vaxis <= float(_vgmax.get())))[0]
@@ -99,7 +103,10 @@ def main():
         		freqmax=float(_fmax.get()), corners=2, zerophase=True)
         p.plot(taxis, tr.data)
         p.plot(taxis[zone], tr.data[zone], c='r')
-        ccf.subplots_adjust(bottom=0.25)
+        p.set_xlim(0, float(_tmax.get()))  # set t-max in plot
+        p.set_xlabel("Time [s]")
+        p.grid("major")
+        ccf.subplots_adjust(bottom=0.32,left=0.1,right=0.95)
         ccfcanvas.draw()
 
         # Compute the FTAN matrix and auto pick dispersion curve
@@ -267,12 +274,12 @@ def main():
     _vgmin = StringVar(root, value=vgmin)
     vgminSize = ttk.Entry(mainframe, width=7, textvariable=_vgmin)
     vgminSize.grid(column=2, row=2, sticky=(W, E))
-    tmp = ttk.Label(mainframe, text="Vg Min ", style='My.TLabel').grid(column=1, row=2, sticky=W)
+    tmp = ttk.Label(mainframe, text="Vg Min [km/s] ", style='My.TLabel').grid(column=1, row=2, sticky=W)
 
     _vgmax = StringVar(root, value=vgmax)
     vgmaxSize = ttk.Entry(mainframe, width=7, textvariable=_vgmax)
     vgmaxSize.grid(column=2, row=3, sticky=(W, E))
-    ttk.Label(mainframe, text="Vg Max ", style='My.TLabel').grid(column=1, row=3, sticky=W)
+    ttk.Label(mainframe, text="Vg Max [km/s] ", style='My.TLabel').grid(column=1, row=3, sticky=W)
 
     _minSNR = StringVar(root, value=0.0)
     minSNRSize = ttk.Entry(mainframe, width=7, textvariable=_minSNR)
@@ -287,17 +294,17 @@ def main():
     _fmin = StringVar(root, value=fmin)
     fminSize = ttk.Entry(mainframe, width=7, textvariable=_fmin)
     fminSize.grid(column=2, row=6, sticky=(W, E))
-    ttk.Label(mainframe, text="Min Frequency ", style='My.TLabel').grid(column=1, row=6, sticky=W)
+    ttk.Label(mainframe, text="Min Frequency [Hz] ", style='My.TLabel').grid(column=1, row=6, sticky=W)
 
     _fmax = StringVar(root, value=fmax)
     fmaxSize = ttk.Entry(mainframe, width=7, textvariable=_fmax)
     fmaxSize.grid(column=2, row=7, sticky=(W, E))
-    ttk.Label(mainframe, text="Max Frequency ", style='My.TLabel').grid(column=1, row=7, sticky=W)
+    ttk.Label(mainframe, text="Max Frequency [Hz] ", style='My.TLabel').grid(column=1, row=7, sticky=W)
 
     _diagType = StringVar(root, value="PV")
     diagTypeSize = ttk.Entry(mainframe, width=7, textvariable=_diagType)
     diagTypeSize.grid(column=2, row=8, sticky=(W, E))
-    ttk.Label(mainframe, text="Diagram (...) ", style='My.TLabel').grid(column=1, row=8, sticky=W)
+    ttk.Label(mainframe, text="FTAN diagram type\n(PV,FV,PT,FT) ", style='My.TLabel').grid(column=1, row=8, sticky=W)
 
     _bmin = StringVar(root, value=bmin)
     bminSize = ttk.Entry(mainframe, width = 7, textvariable = _bmin)
@@ -318,33 +325,38 @@ def main():
     cm_val = StringVar()
     cm = ttk.Combobox(mainframe, width=7, textvariable=cm_val, height=4)
     cm.grid(column=2, row=12, sticky=(W, E))
-    ttk.Label(mainframe, text="Cmap ", style='My.TLabel').grid(column=1, row=12,
-                                                               sticky=W)
+    ttk.Label(mainframe, text="FTAN cmap ", style='My.TLabel').grid(column=1, row=12, sticky=W)
     cm['values'] = maps
     cm_val.set("hot_r")
 
+    _tmax = StringVar(root, value=tmax)
+    tmaxSize = ttk.Entry(mainframe, width = 7, textvariable = _tmax)
+    tmaxSize.grid(column = 2, row = 13, sticky =(W, E))
+    ttk.Label(mainframe, text="T-max [s] \n(trace plot only) ", style='My.TLabel').grid(column=1, row=13, sticky=W)
 
-    ccf = Figure(figsize=(5, 1), dpi=100)
+    # Top waveform figure
+    ccf = Figure(figsize=(6.4, 1.5), dpi=100)
     ccfcanvas = FigureCanvasTkAgg(ccf, master=mainframe)
-    ccfcanvas.get_tk_widget().grid(row=2, column=3, rowspan=2)
+    ccfcanvas.get_tk_widget().grid(row=2, column=3, rowspan=5)
 
+    # Bottom FTAN matrix image
     f = Figure(dpi=100)
     canvas = FigureCanvasTkAgg(f, master=mainframe)
-    canvas.get_tk_widget().grid(row=4, column=3, rowspan=9)
-
-    _normed = IntVar()
-    chh = ttk.Checkbutton(mainframe, text="Normed", variable=_normed, \
-                     onvalue=1, offvalue=0).grid(column=1, row=13, sticky=W)
+    canvas.get_tk_widget().grid(row=7, column=3, rowspan=9)
 
     _filtered = IntVar()
-    chh = ttk.Checkbutton(mainframe, text="Filtered", variable=_filtered, \
+    chh = ttk.Checkbutton(mainframe, text="Plot Filtered \nTrace", variable=_filtered, \
                      onvalue=1, offvalue=0).grid(column=1, row=14, sticky=W)
 
+    _normed = IntVar()
+    chh = ttk.Checkbutton(mainframe, text="Plot Normed \nFTAN", variable=_normed, \
+                     onvalue=1, offvalue=0).grid(column=1, row=15, sticky=W)
+
     ttk.Button(mainframe, text="Compute", command=process,
-               style='My.TButton').grid(column=2, row=13, sticky=W)
+               style='My.TButton').grid(column=2, row=14, sticky=W)
 
     ttk.Button(mainframe, text="Save", command=save,
-               style='My.TButton').grid(column=2, row=14, sticky=W)
+               style='My.TButton').grid(column=2, row=15, sticky=W)
 
     # toolbar = NavigationToolbar2TkAgg(canvas, mainframe)
     # toolbar.update()
