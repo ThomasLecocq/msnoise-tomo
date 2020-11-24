@@ -60,7 +60,7 @@ def main():
                 print("*" * 100)
                 tmp = tmp.dropna()
                 print("*" * 100)
-                of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.3fs.dat"%per)
+                of = os.path.join("TOMO_FILES", "%02i" % filterid, comp, "TestGroupVel_%.4fs.dat"%per)
                 if not os.path.isdir(os.path.split(of)[0]):
                     os.makedirs(os.path.split(of)[0])
                 tmp.to_csv(of, index=False, header=False, sep=" ")
