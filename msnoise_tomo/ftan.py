@@ -31,6 +31,7 @@ def main(pair, bmin, bmax, show):
     nfreq = int(get_config(db, "ftan_nfreq", plugin="Tomo"))
     vgmin = float(get_config(db, "ftan_vgmin", plugin="Tomo"))
     vgmax = float(get_config(db, "ftan_vgmax", plugin="Tomo"))
+    minWL = float(get_config(db, "ftan_minWL", plugin="Tomo"))
 
     # If bmin,bmax not passed to main() then get from db
     if bmin is None:
@@ -178,10 +179,16 @@ def main(pair, bmin, bmax, show):
                     GVdisp[i]["GroupVel"] = dist / D[:, 1]
                     GVdisp[i]["GroupTime"] = D[:, 1]
 
+                # Apply the wavelength cutoff
+                wavelength = GVdisp[i]["GroupVel"] * GVdisp[i]["PERIOD"]
+                idxx = np.where( minWL > dist / wavelength )[0]
+                GVdisp[i]["GroupVel"][idxx] = np.nan
+
                 # Interpolate the dispersion curve to the periods requested in tomoconfig
                 # and store in big matrix for later plotting
                 Disp[:, i] = interpolate_disp_curve(GVdisp[i]["PERIOD"],
                                                     GVdisp[i]["GroupVel"], PER)
+
                 write_tomo_disp_file(filename, basename, Disp[:, i], PER)
                 # write_tomo_disp_file(filename, basename,
                 # GVdisp[i]["GroupVel"],

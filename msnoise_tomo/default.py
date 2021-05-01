@@ -5,6 +5,7 @@ default['ftan_fmin'] = ["Minimum frequency for the FTAN matrix computation [Hz]"
 default['ftan_fmax'] = ["Maximum frequency for the FTAN matrix computation [Hz]",'1.0']
 default['ftan_vgmin'] = ["Minimum group velocity for the FTAN matrix computation [km/s]",'0.5']
 default['ftan_vgmax'] = ["Maximum group velocity for the FTAN matrix computation [km/s]",'5.0']
+default['ftan_minWL'] = ["Minimum wavelength",'1.0']
 default['ftan_bmin'] = ["",'0.0022']
 default['ftan_bmax'] = ["",'0.025']
 default['ftan_diagramtype'] = ["Choose the type of FTAN diagram to display -- options: PV, FV, PT, FT (F=frequency, P=period, V=velocity, T=time)",'PV']
