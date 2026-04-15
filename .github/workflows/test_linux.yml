@@ -46,6 +46,9 @@ jobs:
         run: conda env update -n test${{ matrix.python-version }} -f .github/environment.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
+      - name: Activate environment
+        run: conda activate test${{ matrix.python-version }}
+
       - name: print package info
         shell: bash -l {0}
         run: |
