@@ -6,6 +6,11 @@ dependencies:
   - click
   - shapely
   - pyproj
+  - pip
+  - git
+  - numpy
+  - obspy
+  - msnoise
   - pip:
       - http://msnoise.org/master.zip
 
