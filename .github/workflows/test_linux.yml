@@ -28,7 +28,7 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
-      - uses: conda-incubator/setup-miniconda@v3.1.1
+      - uses: conda-incubator/setup-miniconda@v3.3.0
         with:
           activate-environment: test${{ matrix.python-version }}
           python-version: ${{ matrix.python-version }}
