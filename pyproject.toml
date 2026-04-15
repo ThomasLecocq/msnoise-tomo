@@ -1,0 +1,50 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.8",
+    "numpy",
+    "pybind11"  # safe default for C/C++ builds
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "msnoise_tomo"
+version = "0.1b"
+description = "Monitoring Seismic Velocity Changes using Ambient Seismic Noise"
+readme = "README.md"
+requires-python = ">=3.8"
+
+authors = [
+    { name = "Thomas Lecocq & MSNoise dev team", email = "Thomas.Lecocq@seismology.be" }
+]
+
+license = { text = "EUPL-1.1" }
+
+dependencies = [
+    "msnoise",
+    "shapely",
+    "pyproj"
+]
+
+[project.urls]
+Homepage = "http://www.msnoise.org"
+
+# Entry points
+[project.entry-points."msnoise.plugins.commands"]
+tomo = "msnoise_tomo.plugin_definition:tomo"
+
+[project.entry-points."msnoise.plugins.jobtypes"]
+register = "msnoise_tomo.plugin_definition:register_job_types"
+
+[project.entry-points."msnoise.plugins.table_def"]
+TomoConfig = "msnoise_tomo.tomo_table_def:TomoConfig"
+
+[project.entry-points."msnoise.plugins.admin_view"]
+TomoConfigView = "msnoise_tomo.plugin_definition:TomoConfigView"
+
+[tool.scikit-build]
+wheel.packages = ["msnoise_tomo"]
+
+# Put compiled libs inside package
+wheel.install-dir = "msnoise_tomo/lib"
+
+cmake.minimum-version = "3.18"
