@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.18)
 project(msnoise_tomo LANGUAGES C CXX)
 
-# Python + NumPy
+# -------------------------
+# Python
+# -------------------------
 find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
-# Get NumPy include dir via Python
+# -------------------------
+# NumPy include dir (via Python)
+# -------------------------
 execute_process(
     COMMAND ${Python_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
     OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
@@ -13,29 +17,26 @@ execute_process(
 
 message(STATUS "NumPy include dir: ${NUMPY_INCLUDE_DIR}")
 
-include_directories(${NUMPY_INCLUDE_DIR})
-
-# Output dir = package/lib
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/msnoise_tomo/lib)
-
 # -------------------------
 # mk_MatPaths
 # -------------------------
-add_library(mk_MatPaths MODULE src/mk_MatPaths.c)
-target_include_directories(mk_MatPaths PRIVATE ${NumPy_INCLUDE_DIRS})
+Python_add_library(mk_MatPaths MODULE src/mk_MatPaths.c)
+target_include_directories(mk_MatPaths PRIVATE ${NUMPY_INCLUDE_DIR})
 set_target_properties(mk_MatPaths PROPERTIES PREFIX "")
+target_link_libraries(mk_MatPaths PRIVATE Python::Module)
 
 # -------------------------
 # mkMatSmoothing
 # -------------------------
-add_library(mkMatSmoothing MODULE src/mkMatSmoothing.c)
-target_include_directories(mkMatSmoothing PRIVATE ${NumPy_INCLUDE_DIRS})
+Python_add_library(mkMatSmoothing MODULE src/mkMatSmoothing.c)
+target_include_directories(mkMatSmoothing PRIVATE ${NUMPY_INCLUDE_DIR})
 set_target_properties(mkMatSmoothing PROPERTIES PREFIX "")
+target_link_libraries(mkMatSmoothing PRIVATE Python::Module)
 
 # -------------------------
 # vg_fta (C++)
 # -------------------------
-add_library(vg_fta MODULE
+Python_add_library(vg_fta MODULE
     src/configparser.cpp
     src/fft_NR.cpp
     src/fta_param.cpp
@@ -43,15 +44,32 @@ add_library(vg_fta MODULE
     src/readsac.cpp
     src/vg_fta.cpp
 )
-
-target_include_directories(vg_fta PRIVATE ${NumPy_INCLUDE_DIRS})
+target_include_directories(vg_fta PRIVATE ${NUMPY_INCLUDE_DIR})
 set_target_properties(vg_fta PROPERTIES PREFIX "")
+target_link_libraries(vg_fta PRIVATE Python::Module)
 
 # -------------------------
-# Windows (.def exports)
+# Windows: export symbols via .def files
 # -------------------------
 if (WIN32)
-    set_target_properties(mk_MatPaths PROPERTIES LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/mk_MatPaths.def")
-    set_target_properties(mkMatSmoothing PROPERTIES LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/mkMatSmoothing.def")
-    set_target_properties(vg_fta PROPERTIES LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/vg_fta.def")
+    set_target_properties(mk_MatPaths PROPERTIES
+        LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/mk_MatPaths.def"
+    )
+    set_target_properties(mkMatSmoothing PROPERTIES
+        LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/mkMatSmoothing.def"
+    )
+    set_target_properties(vg_fta PROPERTIES
+        LINK_FLAGS "/DEF:${CMAKE_SOURCE_DIR}/src/vg_fta.def"
+    )
 endif()
+
+# -------------------------
+# Install into Python package
+# -------------------------
+install(TARGETS
+    mk_MatPaths
+    mkMatSmoothing
+    vg_fta
+    LIBRARY DESTINATION msnoise_tomo/lib
+    RUNTIME DESTINATION msnoise_tomo/lib
+)

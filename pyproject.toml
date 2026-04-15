@@ -1,8 +1,7 @@
 [build-system]
 requires = [
-    "scikit-build-core>=0.8",
-    "numpy",
-    "pybind11"  # safe default for C/C++ builds
+    "scikit-build-core>=0.12",
+    "numpy"
 ]
 build-backend = "scikit_build_core.build"
 
@@ -28,7 +27,9 @@ dependencies = [
 [project.urls]
 Homepage = "http://www.msnoise.org"
 
+# -------------------------
 # Entry points
+# -------------------------
 [project.entry-points."msnoise.plugins.commands"]
 tomo = "msnoise_tomo.plugin_definition:tomo"
 
@@ -41,10 +42,9 @@ TomoConfig = "msnoise_tomo.tomo_table_def:TomoConfig"
 [project.entry-points."msnoise.plugins.admin_view"]
 TomoConfigView = "msnoise_tomo.plugin_definition:TomoConfigView"
 
+# -------------------------
+# scikit-build config
+# -------------------------
 [tool.scikit-build]
 wheel.packages = ["msnoise_tomo"]
-
-# Put compiled libs inside package
-wheel.install-dir = "msnoise_tomo/lib"
-
-cmake.minimum-version = "3.18"
+cmake.version = ">=3.18"
