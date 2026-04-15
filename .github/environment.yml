@@ -1,0 +1,12 @@
+name: test
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - click
+  - shapely
+  - pyproj
+  - pip:
+      - http://msnoise.org/master.zip
+
+
