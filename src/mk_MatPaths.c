@@ -53,12 +53,12 @@ int main(int argc, char *argv[]) {
 
 
 	if( (flin=fopen(argv[1],"r"))==NULL) {
-		printf("ERREUR impossible d'ouvrir %s.\n",argv[1]);
+		printf("ERROR : cannot open %s.\n",argv[1]);
 		exit(0);
 	}
 
     if( (flux=fopen(argv[2],"r"))==NULL) {
-		printf("ERREUR impossible d'ouvrir %s.\n",argv[2]);
+		printf("ERROR : cannot open %s.\n",argv[2]);
 		exit(0);
 	}
 
@@ -69,27 +69,27 @@ int main(int argc, char *argv[]) {
 	
 	fclose(flux);
 
-	printf("Lecture : x=(%f,%f), y=(%f,%f) et delta=(%f,%f)\n",
+	printf("Lecture : x=(%f,%f), y=(%f,%f) and delta=(%f,%f)\n",
 		G_xmin,G_xmax,G_ymin,G_ymax,G_dx,G_dy);
 
 	//allocation memoire
 	nX=(int)floor((G_xmax-G_xmin)/G_dx)+1;
 	printf("Dim xGrid=%d\n",nX);
 	if( (xGrid = (double*) malloc(sizeof(double)*(nX+1))) == NULL ) {
-		printf("ERREUR : pas assez dde memoire\n");
+		printf("ERROR : not enough memory\n");
 		exit(0);
 	}
 
 	nY=(int)floor((G_ymax-G_ymin)/G_dy)+1;
 	printf("Dim yGrid=%d\n",nY);
 	if( (yGrid = (double*) malloc(sizeof(double)*(nY+1))) == NULL ) {
-		printf("ERREUR : pas assez dde memoire\n");
+		printf("ERROR : not enough memory\n");
 		exit(0);
 	}
 	
 	nG=nX*nY;
 	if( (G=(double*)malloc(sizeof(double)*nG)) == NULL) {
-		printf("ERREUR : pas assez de memoire\n");
+		printf("ERROR : not enough memory\n");
 		exit(0);
 	}
 //	printf("xGrid\n");
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 	for(i=0; i<=nY; i++) {yGrid[i]=G_ymin+i*G_dy;} //printf("%2.2lf ", yGrid[i]);}
 
 	if( (flux=fopen(FILE_MATG, "wb"))==NULL) {
-		printf("ERREUR: impossible d'ouvrir %s.\n", FILE_MATG);
+		printf("ERROR : cannot open %s.\n", FILE_MATG);
 		exit(0);
 	}
 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 			distForOnePath(p1, p2);
 		}
 		else
-			printf("Attention: (%.5f,%.5f) ou (%.5f,%.5f) hors de la grille\n", p1.x, p1.y, p2.x, p2.y);
+			printf("Attention: (%.5f,%.5f) or (%.5f,%.5f) out of the grid\n", p1.x, p1.y, p2.x, p2.y);
 		fwrite(G, sizeof(double), nG, flux);
 //		writeG(flux);
 
